@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "RawDataVisualization.h"
+#include <fstream>
 
 namespace OpenGLForm{
 
@@ -11,10 +12,10 @@ namespace OpenGLForm{
 			parentPanel->MouseDoubleClick += gcnew System::Windows::Forms::MouseEventHandler( this, &RawDataVisualization::RawDataMouseDoubleClick );	 
 			time_string();
 			//Initialize mouse handler variable
-			scale_x[1] = 1.7; scale_y[1] = 0.2; scale_z[1] = 0.0;
-			scale_size[1] = 0.05;
+			scale_x[1] = 1.7; scale_y[1] = 0.015; scale_z[1] = 0.0;
+			scale_size[1] = 0.005;
 			move_x[1] = 0.0; move_y[1] = 0.0; move_z[1] = 0.0;
-			scale_factor[1] = 0.6;
+			scale_factor[1] = 0.0;
 			//Initialize window size
 			windowWidth[1] = iWidth; 
 			windowHeight[1] = iHeight;
@@ -42,9 +43,93 @@ namespace OpenGLForm{
 			glLoadIdentity();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Clear the screen and depth buffer
 
-			glTranslatef(0.0+move_x[1],0.0+move_y[1],0.0+move_z[1]);
+			glTranslatef(50.0+move_x[1],180.0+move_y[1],0.0+move_z[1]);
 			glScalef(scale_factor[1]+scale_x[1],scale_factor[1]+scale_y[1],scale_factor[1]+scale_z[1]);
 			glGetDoublev(GL_MODELVIEW_MATRIX, ModelViewMatrix2);//////////////
+
+			if(!histogram_index.empty())
+			{
+				int y_position = 0;
+				for(int u=0;u<histogram_index.size();u++)
+				{
+					int idx = histogram_index[u];
+					Mat result = preprocessing_data.find_month_and_day(idx).clone();
+					int this_month = result.at<int>(0,0);
+					int this_day = result.at<int>(0,1);
+
+					for(int i=0;i<23;i++)
+					{
+						int hour_data_current = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0]
+											  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[1]
+											  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[2]
+											  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[3];
+						int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0]
+										   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1]
+										   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[2]
+										   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[3];
+						glPushMatrix(); 
+						glBegin(GL_QUADS); 
+							glColor3f(1,1,0);  
+							glVertex3f(i*15,y_position,0);
+							glVertex3f((i+1)*15,y_position,0);
+							glVertex3f((i+1)*15,y_position-hour_data_next,0); 
+							glVertex3f(i*15,y_position-hour_data_current,0);						
+						glEnd();
+						glPopMatrix();
+					}
+					for(int i=0;i<23;i++)
+					{
+						int hour_data_current = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0]
+											  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[1]
+											  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[2];
+						int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0]
+										   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1]
+										   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[2];
+						glPushMatrix(); 
+						glBegin(GL_QUADS); 
+							glColor3f(0,0,1);  
+							glVertex3f(i*15,y_position,0);
+							glVertex3f((i+1)*15,y_position,0);
+							glVertex3f((i+1)*15,y_position-hour_data_next,0); 
+							glVertex3f(i*15,y_position-hour_data_current,0);						
+						glEnd();
+						glPopMatrix();
+					}
+					for(int i=0;i<23;i++)
+					{
+						int hour_data_current = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0]
+											  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[1];
+						int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0]
+										   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1];
+						glPushMatrix(); 
+						glBegin(GL_QUADS); 
+							glColor3f(0,1,0); 
+							glVertex3f(i*15,y_position,0);
+							glVertex3f((i+1)*15,y_position,0);
+							glVertex3f((i+1)*15,y_position-hour_data_next,0); 
+							glVertex3f(i*15,y_position-hour_data_current,0);						
+						glEnd();
+						glPopMatrix();
+					}
+					for(int i=0;i<23;i++)
+					{
+						int hour_data_current= preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0];
+						int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0];
+						glPushMatrix(); 
+						glBegin(GL_QUADS); 
+							glColor3f(1,0,0); 
+							glVertex3f(i*15,y_position,0);
+							glVertex3f((i+1)*15,y_position,0);
+							glVertex3f((i+1)*15,y_position-hour_data_next,0); 
+							glVertex3f(i*15,y_position-hour_data_current,0);						
+						glEnd();
+						glPopMatrix();
+					}
+
+					y_position+= 10000;
+				}
+			}
+			/*
 			vector<float> color;
 			color.resize(3);
 
@@ -78,19 +163,6 @@ namespace OpenGLForm{
 					
 					for(int j=0;j<preprocessing_data.raw_data_3D_array[idx].rows;j++)
 					{
-						//if(preprocessing_data.month_vec[idx].day_vec[j].IsHoliday)
-						//{
-						//	DrawCircle(p+5,y_position-5,3.0,0.0,0.0,1.0);//if holiday not on weekend
-						//}
-
-						//int this_week = preprocessing_data.zellers_congruence_for_week(preprocessing_data.month_vec[idx].this_year,
-						//															   preprocessing_data.month_vec[idx].this_month,
-						//															   preprocessing_data.month_vec[idx].day_vec[j].date);
-						//if(this_week==6 || this_week==7)
-						//{
-						//	DrawCircle(p+5,y_position-5,3.0,1.0,0.0,0.0);//if week6 or wee7, draw circle
-						//}
-
 						RECTANGLE *rect;
 						rect = new RECTANGLE();
 						rect->h = 15;
@@ -124,7 +196,7 @@ namespace OpenGLForm{
 				}
 				
 			}
-
+			*/
 			SwapOpenGLBuffers();
 			
 	}

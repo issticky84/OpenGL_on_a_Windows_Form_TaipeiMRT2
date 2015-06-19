@@ -41,7 +41,7 @@ namespace OpenGL_on_a_Windows_Form
 
 			histogram = gcnew HistogramVisualization(this,this->panel3,panel3->Width,panel3->Height,read_csv,preprocessing_data);
 			rawData = gcnew RawDataVisualization(this,this->panel1,panel1->Width,panel1->Height,read_csv,preprocessing_data);
-			detail = gcnew DetailVisualization(this,this->panel2,panel2->Width,panel2->Height,read_csv,preprocessing_data);
+			//detail = gcnew DetailVisualization(this,this->panel2,panel2->Width,panel2->Height,read_csv,preprocessing_data);
 	
 			/*OpenGL = gcnew COpenGL(this,this->panel1,panel1->Width,panel1->Height,read_csv);
 			OpenGL_2 = gcnew COpenGL(this,this->panel2,panel2->Width,panel2->Height,read_csv);
@@ -142,9 +142,9 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// panel1
 			// 
-			this->panel1->Location = System::Drawing::Point(12, 12);
+			this->panel1->Location = System::Drawing::Point(671, 12);
 			this->panel1->Name = L"panel1";
-			this->panel1->Size = System::Drawing::Size(1547, 363);
+			this->panel1->Size = System::Drawing::Size(888, 985);
 			this->panel1->TabIndex = 0;
 			this->panel1->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &Form1::panel1_Paint);
 			this->panel1->MouseEnter += gcnew System::EventHandler(this, &Form1::panel1_MouseEnter);
@@ -152,9 +152,9 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// panel2
 			// 
-			this->panel2->Location = System::Drawing::Point(671, 381);
+			this->panel2->Location = System::Drawing::Point(671, 1003);
 			this->panel2->Name = L"panel2";
-			this->panel2->Size = System::Drawing::Size(888, 661);
+			this->panel2->Size = System::Drawing::Size(888, 39);
 			this->panel2->TabIndex = 1;
 			this->panel2->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &Form1::panel2_Paint);
 			this->panel2->MouseEnter += gcnew System::EventHandler(this, &Form1::panel2_MouseEnter);
@@ -162,9 +162,9 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// panel3
 			// 
-			this->panel3->Location = System::Drawing::Point(12, 381);
+			this->panel3->Location = System::Drawing::Point(12, 12);
 			this->panel3->Name = L"panel3";
-			this->panel3->Size = System::Drawing::Size(653, 661);
+			this->panel3->Size = System::Drawing::Size(653, 1030);
 			this->panel3->TabIndex = 2;
 			this->panel3->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &Form1::panel3_Paint);
 			this->panel3->MouseEnter += gcnew System::EventHandler(this, &Form1::panel3_MouseEnter);
