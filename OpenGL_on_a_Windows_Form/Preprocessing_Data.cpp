@@ -39,12 +39,30 @@ Preprocessing_Data::Preprocessing_Data()
 	read_lab_csv();
 }
 
-void Preprocessing_Data::Initial_selection_flag(bool f1,bool f2,bool f3,bool f4)
+void Preprocessing_Data::Initial_selection_flag(bool f1, bool f2, bool f3, bool f4, bool f5, bool f6)
 {
-	select_gravity = f1;
-	select_linear_acc = f2;
-	select_gyro = f3;
-	select_distance = f4;	
+	select_residential_in = f1;
+	select_residential_out = f2;
+	select_work_school_in = f3;
+	select_work_school_out = f4;
+	select_tourism_in = f5;
+	select_tourism_out = f6;	
+	
+	//data_dim_flag[6] = {f1,f2,f3,f4,f5,f6};
+	data_dim_flag[0] = f1;
+	data_dim_flag[1] = f2;
+	data_dim_flag[2] = f3;
+	data_dim_flag[3] = f4;
+	data_dim_flag[4] = f5;
+	data_dim_flag[5] = f6;
+
+	data_dim = 0;
+	if(f1==true) data_dim++;
+	if(f2==true) data_dim++;
+	if(f3==true) data_dim++;
+	if(f4==true) data_dim++;
+	if(f5==true) data_dim++;
+	if(f6==true) data_dim++;
 }
 
 void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read, int hour_amount_read, int k)
@@ -53,17 +71,30 @@ void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read
 	day_amount = day_amount_read;
 	hour_amount = hour_amount_read;
 
+	find_month_and_day = new Mat[day_amount];
+	int c = 0;
+	for(int i=0;i<month_vec.size();i++)
+	{
+		for(int j=0;j<month_vec[i].day_vec.size();j++)
+		{
+			find_month_and_day[c] = Mat::zeros(1,2,CV_32S);
+			find_month_and_day[c].at<int>(0,0) = i;
+			find_month_and_day[c].at<int>(0,1) = j;
+			c++;
+		}
+	}
+
 	int choose[] = {37,48,51,52,53};
 	int choose_num = sizeof(choose)/sizeof(choose[0]);
-	int home[] = {29,28,26,25,21,13,14,15,17,18,70,69,66,64,63,62,60,59,43,38,37,35,34,32,174,175,176,177,178,128,45,46,47,48,96,95,85,84,83,81,79,78,77};
-	int home_num = sizeof(home)/sizeof(home[0]);
+	int residential[] = {29,28,26,25,21,13,14,15,17,18,70,69,66,64,63,62,60,59,43,38,37,35,34,32,174,175,176,177,178,128,45,46,47,48,96,95,85,84,83,81,79,78,77};
+	int residential_num = sizeof(residential)/sizeof(residential[0]);
 	int work_school[] = {31,98,30,23,90,10,12,129,55,54,53,52,51,50,42,132,91,89,133,88};
 	int work_school_num = sizeof(work_school)/sizeof(work_school[0]);
 	int tour[] = {22,7,19};
 	int tour_num = sizeof(tour)/sizeof(tour[0]);
-	//int day_amount = 31*24;
-	int dim = 4;
-	Mat model = Mat::zeros(hour_amount,dim,CV_32F);
+
+
+	Mat model = Mat::zeros(hour_amount,data_dim,CV_32F);
 	int t = 0;
 	for(int i=0;i<month_vec.size();i++)
 	{
@@ -71,18 +102,18 @@ void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read
 		{
 			for(int u=0;u<24;u++)
 			{
-				month_vec[i].day_vec[j].hour_vec[u].dim = dim;
-				for(int s=0;s<dim;s++)
+				month_vec[i].day_vec[j].hour_vec[u].dim = data_dim;
+				for(int s=0;s<data_dim;s++)
 				{
 					month_vec[i].day_vec[j].hour_vec[u].data[s] = 0;
 				}
-				for(int s=0;s<home_num;s++)
+				for(int s=0;s<residential_num;s++)
 				{
-					month_vec[i].day_vec[j].hour_vec[u].data[0] += month_vec[i].day_vec[j].hour_vec[u].enter[ home[s] ];
-					month_vec[i].day_vec[j].hour_vec[u].data[1] += month_vec[i].day_vec[j].hour_vec[u].out[ home[s] ];
+					month_vec[i].day_vec[j].hour_vec[u].data[0] += month_vec[i].day_vec[j].hour_vec[u].enter[ residential[s] ];
+					month_vec[i].day_vec[j].hour_vec[u].data[1] += month_vec[i].day_vec[j].hour_vec[u].out[ residential[s] ];
 				}
-				month_vec[i].day_vec[j].hour_vec[u].data[0] /= home_num;
-				month_vec[i].day_vec[j].hour_vec[u].data[1] /= home_num;
+				month_vec[i].day_vec[j].hour_vec[u].data[0] /= residential_num;
+				month_vec[i].day_vec[j].hour_vec[u].data[1] /= residential_num;
 
 
 				for(int s=0;s<work_school_num;s++)
@@ -92,14 +123,22 @@ void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read
 				}
 				month_vec[i].day_vec[j].hour_vec[u].data[2] /= work_school_num;
 				month_vec[i].day_vec[j].hour_vec[u].data[3] /= work_school_num;
-				//for(int s=0;s<tour_num;s++)
-				//{
-				//	month_vec[i].day_vec[j].hour_vec[u].data[4] = month_vec[i].day_vec[j].hour_vec[u].enter[ tour[s] ];
-				//	month_vec[i].day_vec[j].hour_vec[u].data[5] = month_vec[i].day_vec[j].hour_vec[u].out[ tour[s] ];
-				//}
-				for(int s=0;s<dim;s++)
+
+				for(int s=0;s<tour_num;s++)
 				{
-					model.at<float>(t,s) = month_vec[i].day_vec[j].hour_vec[u].data[s];
+					month_vec[i].day_vec[j].hour_vec[u].data[4] = month_vec[i].day_vec[j].hour_vec[u].enter[ tour[s] ];
+					month_vec[i].day_vec[j].hour_vec[u].data[5] = month_vec[i].day_vec[j].hour_vec[u].out[ tour[s] ];
+				}
+				month_vec[i].day_vec[j].hour_vec[u].data[4] /= tour_num;
+				month_vec[i].day_vec[j].hour_vec[u].data[5] /= tour_num;
+
+				int dim = 0;
+				for(int s=0;s<6;s++)
+				{
+					if(data_dim_flag[s]==true)
+					{
+						model.at<float>(t,dim++) = month_vec[i].day_vec[j].hour_vec[u].data[s];
+					}
 				}
 				t++;
 			}
@@ -443,85 +482,6 @@ void Preprocessing_Data::start2(vector<month> month_vec_read, vector<holiday> ho
 
 }
 
-void Preprocessing_Data::start(vector < vector<float> > raw_data,vector<int> attribute_index,int time_index,int k)
-{
-	//int attribute_title_size = 11;
-	//int attribute_title[] = {4,5,6,7,8,9,10,11,12,22,23};//(gravity_x,gravity_y,gravity_z),(linear_acc_x,linear_acc_y,linear_acc_z),(gyro_x,gyro_y,gyro_z),(latitude,longitude)
-	//int time_title[] = {29,30,31,32,33};//hour(30),minute(31)
-	//=====================get Attribute title & time index from Read_CSV=====================//
-	int* attribute_title = new int[attribute_index.size()];
-	for(int i=0;i<attribute_index.size();i++)
-	{
-		attribute_title[i] = attribute_index[i] + 1;
-	}
-	
-	//int time_title[] = {29,30,31,32,33};//hour(30),minute(31)
-	int time_title[5];
-	for(int i=0;i<5;i++)
-	{
-		time_title[i] = time_index + i + 1;
-	}		
-	//============Setting matrix for K-means============//
-	set_hour_data(raw_data,time_title);
-	Mat model = set_matrix(raw_data,attribute_title,attribute_index.size()).clone();
-	delete[] attribute_title;
-	output_mat_as_csv_file_float("model.csv",model);
-	//==============K means clustering==================//
-    //Mat cluster_tag; //Tag:0~k-1
-	//Mat cluster_centers;
-	int attempts = 2;//應該是執行次數
-	//使用k means分群
-	Mat cluster_tag = Mat::zeros(model.rows,1,CV_32S);
-	Mat cluster_centers = Mat::zeros(k,model.cols,CV_32F);
-	cuda_kmeans(model, k, cluster_tag, cluster_centers);
-	//kmeans(model, k, cluster_tag,TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 100, 0.0001), attempts,KMEANS_PP_CENTERS,cluster_centers);
-    //TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 10, 1),  這裡有三個參數，決定k-means何時結束，第二個參數是指迭代最大次數，第三個參數是精確度多少，第一個參數是指依照前兩個參數的哪一個為準，以範例中就是兩者都參照，以 or 的方式決定
-	output_mat_as_csv_file_float("cluster_centers_old.csv",cluster_centers);
-	//===============LAB alignment======================//
-	rgb_mat3 = Mat::zeros(k,3,CV_32F);
-	lab = Mat::zeros(k,3,CV_32F);
-	if(model.cols>=3) rgb_mat3 = lab_alignment_new(cluster_centers,30).clone();
-	else if(model.cols==2) rgb_mat3 = lab_alignment_dim2(cluster_centers,30).clone();
-	else if(model.cols==1) rgb_mat3 = lab_alignment_dim1(cluster_centers,30).clone();
-
-	output_mat_as_csv_file_float("rgb_mat_old.csv",rgb_mat3);
-	//==================================================//
-	//sort the cluster by color and generate new cluster tag and cluster center
-	//sort_by_color(k,rgb_mat3,cluster_centers,cluster_tag);
-
-	Mat lab_color_sort_index = Mat::zeros(k,1,CV_32S);
-	sort_pattern_by_color_by_TSP_coarse_to_fine(lab,lab_color_sort_index);
-	output_mat_as_csv_file_int("lab_color_sort_index.csv",lab_color_sort_index);
-
-	rearrange_mat_by_sort_color_index(lab_color_sort_index,cluster_centers,cluster_tag,rgb_mat3);
-	output_mat_as_csv_file_float("rgb_mat_sort.csv",rgb_mat3);
-	output_mat_as_csv_file_float("cluster_center_sort.csv",cluster_centers);
-	//output_mat_as_csv_file_int("cluster_tag.csv",cluster_tag);
-	//===============Voting (Generate Histogram)========//
-	voting(k,cluster_tag,model.rows); // Type: int
-	output_mat_as_csv_file_int("histogram.csv",histogram);
-	cluster_tag.release();
-	//===============Position (TSP)=====================//
-	Mat histo_sort_index = Mat::zeros(histogram.rows,1,CV_32S); 
-	sort_histogram_by_Ev_by_TSP_coarse_to_fine(cluster_centers,histo_sort_index);
-	output_mat_as_csv_file_int("histo_sort_index.csv",histo_sort_index);
-	
-	Mat histo_position = Mat::zeros(histogram.rows,1,CV_64F);
-	Position_by_histogram_sort_index(histo_position,histo_sort_index);
-	position = histo_position.clone();
-	
-	output_mat_as_csv_file_double("position.csv",position);
-	//===============Position (MDS)=====================//
-	//position = Position_by_MDS(cluster_centers,k,20).clone(); //Type:double
-	
-	//===================PCA raw data 3 dim=======================//
-	if(model.cols>=3) raw_data_3D = lab_alignment(model,30).clone();
-	else if(model.cols==2) raw_data_3D = lab_alignment_dim2(model,30).clone();
-	else if(model.cols==1) raw_data_3D = lab_alignment_dim1(model,30).clone();
-	
-	cluster_centers.release();
-	model.release();	
-}
     
 void Preprocessing_Data::voting_for_data(int day_amount,int k,Mat cluster_tag)
 {
@@ -911,114 +871,6 @@ Mat Preprocessing_Data::Gaussian_filter(vector < vector<float> > raw_data,int at
 	return Gaussian_filter_mat;
 }
 
-Mat Preprocessing_Data::set_matrix(vector < vector<float> > raw_data,int attribute_title[],int attribute_title_size)
-{
-	Mat handle_mat;
-	Mat handle_mat_raw;
-
-	Mat Gaussian_filter_mat = Gaussian_filter(raw_data,attribute_title,3).clone();
-
-	Mat norm_gravity(1, raw_data.size(), CV_32F);
-	Mat norm_linear_acc(1, raw_data.size(), CV_32F);
-	Mat norm_gyro(1, raw_data.size(), CV_32F);
-	//Compute norm
-	for(int i=0;i<raw_data.size();i++)
-	{
-		norm_gravity.at<float>(0,i) = norm_value(Gaussian_filter_mat.at<float>(i,0),Gaussian_filter_mat.at<float>(i,1),Gaussian_filter_mat.at<float>(i,2));
-		norm_linear_acc.at<float>(0,i) = norm_value(Gaussian_filter_mat.at<float>(i,3),Gaussian_filter_mat.at<float>(i,4),Gaussian_filter_mat.at<float>(i,5));
-		norm_gyro.at<float>(0,i) = norm_value(Gaussian_filter_mat.at<float>(i,6),Gaussian_filter_mat.at<float>(i,7),Gaussian_filter_mat.at<float>(i,8));
-	}
-	//for(int i=0;i<raw_data.size();i++)
-	//{
-	//	norm_gravity.at<float>(0,i) = norm_value(raw_data[i][attribute_title[0]],raw_data[i][attribute_title[1]],raw_data[i][attribute_title[2]]);
-	//	norm_linear_acc.at<float>(0,i) = norm_value(raw_data[i][attribute_title[3]],raw_data[i][attribute_title[4]],raw_data[i][attribute_title[5]]);
-	//	norm_gyro.at<float>(0,i) = norm_value(raw_data[i][attribute_title[6]],raw_data[i][attribute_title[7]],raw_data[i][attribute_title[8]]);
-	//}
-	
-	handle_mat_raw.push_back(norm_gravity);
-	if(select_gravity)
-	{
-		handle_mat.push_back(norm_gravity);	
-	}
-	handle_mat_raw.push_back(norm_linear_acc);
-	if(select_linear_acc)
-	{
-		handle_mat.push_back(norm_linear_acc);
-	}
-	handle_mat_raw.push_back(norm_gyro);
-	if(select_gyro)
-	{
-		handle_mat.push_back(norm_gyro);	
-	}
-	//Compute latitude & longitude
-	int lat_index = attribute_title[9];
-	int lon_index = attribute_title[10];
-	Mat first_order_distance_mat(1, raw_data.size(), CV_32F);
-	for(int i=0;i<raw_data.size();i++)
-	{
-		if(i==0)
-			first_order_distance_mat.at<float>(0,i) = 0.0;
-		else
-		{
-			float dist = DistanceOfLontitudeAndLatitude(raw_data[i-1][lat_index],raw_data[i][lat_index],raw_data[i-1][lon_index],raw_data[i][lon_index]);
-			first_order_distance_mat.at<float>(0,i) = dist;
-		}
-	}
-
-	output_mat_as_csv_file_float("first_order_distance_mat.csv",first_order_distance_mat.t());
-	interpolate_distance(first_order_distance_mat,3000);
-	output_mat_as_csv_file_float("first_order_distance_mat_new.csv",first_order_distance_mat.t());
-
-	Mat first_order_distance_adjust_mat(1, raw_data.size(), CV_32F);
-	for(int i=0;i<raw_data.size();i++)
-	{
-		float d = first_order_distance_mat.at<float>(0,i);
-		float d1;
-		if(d==0.0 || d<1.0e-4) 
-			d1 = 0.0;
-		else if(d>0.05)//threshold:0.044km/sample=315km/hr
-			d1 = 0.05;
-		else if(d!=0.0)	
-		{
-			d1 = log(d);
-		}
-		first_order_distance_adjust_mat.at<float>(0,i) = d1;
-	}
-	
-	//interpolate_distance(first_order_distance_adjust_mat,100);
-
-	double min, max;
-	minMaxLoc(first_order_distance_adjust_mat, &min, &max);
-	for(int i=0;i<first_order_distance_adjust_mat.cols;i++)
-	{
-		if(first_order_distance_adjust_mat.at<float>(0,i) != 0)
-			first_order_distance_adjust_mat.at<float>(0,i) -= min;
-	}
-
-	handle_mat_raw.push_back(first_order_distance_adjust_mat);/////////////////////////////
-	if(select_distance)
-		handle_mat.push_back(first_order_distance_adjust_mat);	
-	
-	Mat handle_mat_transpose = handle_mat.t();
-	Mat handle_mat_raw_transpose = handle_mat_raw.t();
-	handle_mat.release();
-	handle_mat_raw.release();
-
-	raw_data_mat = handle_mat_raw_transpose.clone();//////////////////////////
-
-
-	Mat normalize_mat = handle_mat_transpose;
-	for(int i=0;i<handle_mat_transpose.cols;i++)
-		//normalize_mat.col(i) = normalize_column(handle_mat_transpose.col(i)).clone();
-		normalize(handle_mat_transpose.col(i),normalize_mat.col(i),0,1,NORM_MINMAX);
-
-	//output_mat_as_csv_file("normalize_mat.csv",normalize_mat);
-
-	//raw_data_mat = normalize_mat.clone();
-
-	return normalize_mat;
-
-}
 
 void Preprocessing_Data::voting(int k,Mat cluster_tag,int row_size)
 {
@@ -3540,37 +3392,3 @@ void Preprocessing_Data::Position_by_histogram_sort_index(Mat& histo_position,Ma
 	}
 }
 
-Mat Preprocessing_Data::find_month_and_day(int num)
-{
-	Mat result = Mat::zeros(1,2,CV_32S);
-	int count = 0;
-	int month,day;
-	for(int i=0;i<month_vec.size();i++)
-	{
-		for(int j=0;j<month_vec[i].day_vec.size();j++)
-		{
-			if(count==num)
-			{
-				month = i;
-				day = j;
-				break;
-			}
-			count++;
-		}
-		if(count==num) break;
-	}
-
-	result.at<int>(0,0) = month;
-	result.at<int>(0,1) = day;
-
-	static bool flag = false;
-	if(flag==false)
-	{
-		flag = true;
-		ofstream fout("test.txt");
-		if(num==120)
-			fout << month << " " << day << endl;
-		fout.close();
-	}
-	return result;
-}

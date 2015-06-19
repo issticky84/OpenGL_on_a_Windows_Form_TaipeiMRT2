@@ -36,7 +36,6 @@ private:
 	float DistanceOfLontitudeAndLatitude(float,float,float,float);
 	void set_hour_data(vector < vector<float> > ,int time_title[]);
 	Mat Gaussian_filter(vector < vector<float> >,int attribute_title[],int);
-	Mat set_matrix(vector < vector<float> >,int attribute_title[],int);
 	void voting(int,Mat,int);
 	Mat Position_by_MDS(Mat,int ,float);
 	Mat lab_alignment(Mat,int);
@@ -73,10 +72,9 @@ private:
 
 public:
 	Preprocessing_Data();
-	void start(vector < vector<float> >,vector<int>,int,int);
 	void start2(vector<month>,vector<holiday>,int);
 	void start3(vector<month>,int,int,int);
-	void Initial_selection_flag(bool,bool,bool,bool);
+	void Initial_selection_flag(bool, bool, bool, bool, bool, bool);
 
 	int num_of_five_minutes;
 	//int raw_data_size;
@@ -91,7 +89,8 @@ public:
 	vector<int> hour_index;
 	int num_of_begin_hour,begin_hour;
 	bool waiting_flag;
-	bool select_gravity,select_linear_acc,select_gyro,select_distance;
+	//bool select_gravity,select_linear_acc,select_gyro,select_distance;
+	bool select_residential_in, select_residential_out, select_work_school_in, select_work_school_out, select_tourism_in, select_tourism_out;
 	int progress_value;
 	Mat lab;
 	
@@ -101,7 +100,10 @@ public:
 	Mat raw_data_3D_array[400];
 	int zellers_congruence_for_week(int,int,int);
 	bool check_holiday(vector<holiday>,int,int,int);
-	Mat find_month_and_day(int);
+
+	int data_dim;
+	bool data_dim_flag[6];
+	Mat* find_month_and_day;
 };
 
 

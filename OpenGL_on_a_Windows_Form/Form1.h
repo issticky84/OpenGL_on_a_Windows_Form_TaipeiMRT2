@@ -21,7 +21,6 @@ namespace OpenGL_on_a_Windows_Form
 		Form1(void)
 		{
 			InitializeComponent();
-			//system("matlab -nodesktop -nosplash -r draw_rect_wear2");
 
 			ReadCSV read_csv;
 			//char file_name[200] = "file_list_MRT_rain.txt";
@@ -32,23 +31,20 @@ namespace OpenGL_on_a_Windows_Form
 
 			Preprocessing_Data preprocessing_data;
 
-			//preprocessing_data.start(read_csv.raw_data,read_csv.attribute_index,read_csv.time_index,trackBar1->Value);
-			//preprocessing_data.start2(read_csv.month_vec,read_csv.holiday_vec, trackBar1->Value);
+			preprocessing_data.Initial_selection_flag(this->residential_in->Checked,
+													  this->residential_out->Checked,
+													  this->work_school_in->Checked,
+													  this->work_school_out->Checked,
+													  this->tourism_in->Checked,
+													  this->tourism_out->Checked);
+
 			preprocessing_data.start3(read_csv.month_vec,read_csv.day_amount,read_csv.hour_amount,trackBar1->Value);
 
-			//waiting_flag = true;
-			//start_flag = false;
 
 			histogram = gcnew HistogramVisualization(this,this->panel3,panel3->Width,panel3->Height,read_csv,preprocessing_data);
 			rawData = gcnew RawDataVisualization(this,this->panel1,panel1->Width,panel1->Height,read_csv,preprocessing_data);
 			//detail = gcnew DetailVisualization(this,this->panel2,panel2->Width,panel2->Height,read_csv,preprocessing_data);
-	
-			/*OpenGL = gcnew COpenGL(this,this->panel1,panel1->Width,panel1->Height,read_csv);
-			OpenGL_2 = gcnew COpenGL(this,this->panel2,panel2->Width,panel2->Height,read_csv);
-			OpenGL_3 = gcnew COpenGL(this,this->panel3,panel3->Width,panel3->Height,read_csv);
-			*/
 
-			
 		}
 	protected:
 
@@ -75,10 +71,7 @@ namespace OpenGL_on_a_Windows_Form
 		RawDataVisualization ^ rawData;
 		DetailVisualization ^ detail;
 		HistogramVisualization ^ histogram;
-		/*OpenGLForm2::COpenGL ^ OpenGL;
-		OpenGLForm2::COpenGL ^ OpenGL_2;
-		OpenGLForm2::COpenGL ^ OpenGL_3;
-		OpenGLForm2::COpenGL ^ OpenGL_4;*/
+
 	private: System::Windows::Forms::TrackBar^  trackBar1;
 	
 	private: System::Boolean Move_3_21_flag,Down_3_21_flag;
@@ -88,18 +81,20 @@ namespace OpenGL_on_a_Windows_Form
 	private: System::Windows::Forms::Button^  Detail_Clear;
 	private: System::Windows::Forms::TextBox^  textBox1;
 	private: System::Boolean waiting_flag;
-	private: System::Windows::Forms::CheckBox^  Gravity_Norm;
-	private: System::Windows::Forms::CheckBox^  Linear_Acceleration_Norm;
+	private: System::Windows::Forms::CheckBox^  residential_in;
+	private: System::Windows::Forms::CheckBox^  residential_out;
 
 	private: System::Windows::Forms::Label^  feature_selection_label;
-	private: System::Windows::Forms::CheckBox^  Gyroscope_Norm;
-	private: System::Windows::Forms::CheckBox^  First_Order_of_Distance;
+	private: System::Windows::Forms::CheckBox^  work_school_in;
+	private: System::Windows::Forms::CheckBox^  work_school_out;
 	private: System::Windows::Forms::Label^  cluster_label;
 	private: System::Boolean start_flag;
 	private: System::Windows::Forms::ProgressBar^  progressBar1;
 	private: System::Windows::Forms::Button^  load_csv;
 	private: System::Windows::Forms::Label^  file_directory;
 	private: System::ComponentModel::BackgroundWorker^  backgroundWorker1;
+	private: System::Windows::Forms::CheckBox^  tourism_in;
+	private: System::Windows::Forms::CheckBox^  tourism_out;
 
 	public:  System::Windows::Forms::OpenFileDialog ofdOpen;
 	//private: System::String^ file_string;
@@ -121,11 +116,13 @@ namespace OpenGL_on_a_Windows_Form
 			this->trackBar1 = (gcnew System::Windows::Forms::TrackBar());
 			this->Detail_Clear = (gcnew System::Windows::Forms::Button());
 			this->textBox1 = (gcnew System::Windows::Forms::TextBox());
-			this->Gravity_Norm = (gcnew System::Windows::Forms::CheckBox());
-			this->Linear_Acceleration_Norm = (gcnew System::Windows::Forms::CheckBox());
 			this->feature_selection_label = (gcnew System::Windows::Forms::Label());
-			this->Gyroscope_Norm = (gcnew System::Windows::Forms::CheckBox());
-			this->First_Order_of_Distance = (gcnew System::Windows::Forms::CheckBox());
+			this->residential_in = (gcnew System::Windows::Forms::CheckBox());
+			this->residential_out = (gcnew System::Windows::Forms::CheckBox());
+			this->work_school_in = (gcnew System::Windows::Forms::CheckBox());
+			this->work_school_out = (gcnew System::Windows::Forms::CheckBox());
+			this->tourism_in = (gcnew System::Windows::Forms::CheckBox());
+			this->tourism_out = (gcnew System::Windows::Forms::CheckBox());
 			this->cluster_label = (gcnew System::Windows::Forms::Label());
 			this->progressBar1 = (gcnew System::Windows::Forms::ProgressBar());
 			this->load_csv = (gcnew System::Windows::Forms::Button());
@@ -172,7 +169,7 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// start
 			// 
-			this->start->Location = System::Drawing::Point(1716, 309);
+			this->start->Location = System::Drawing::Point(1716, 428);
 			this->start->Name = L"start";
 			this->start->Size = System::Drawing::Size(134, 67);
 			this->start->TabIndex = 4;
@@ -193,7 +190,7 @@ namespace OpenGL_on_a_Windows_Form
 			// trackBar1
 			// 
 			this->trackBar1->LargeChange = 1;
-			this->trackBar1->Location = System::Drawing::Point(1682, 249);
+			this->trackBar1->Location = System::Drawing::Point(1682, 362);
 			this->trackBar1->Maximum = 50;
 			this->trackBar1->Name = L"trackBar1";
 			this->trackBar1->Size = System::Drawing::Size(196, 45);
@@ -213,35 +210,11 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// textBox1
 			// 
-			this->textBox1->Location = System::Drawing::Point(1873, 249);
+			this->textBox1->Location = System::Drawing::Point(1873, 362);
 			this->textBox1->Name = L"textBox1";
 			this->textBox1->Size = System::Drawing::Size(24, 22);
 			this->textBox1->TabIndex = 8;
 			this->textBox1->Text = L"7";
-			// 
-			// Gravity_Norm
-			// 
-			this->Gravity_Norm->AutoSize = true;
-			this->Gravity_Norm->Location = System::Drawing::Point(1691, 61);
-			this->Gravity_Norm->Name = L"Gravity_Norm";
-			this->Gravity_Norm->Size = System::Drawing::Size(89, 16);
-			this->Gravity_Norm->TabIndex = 9;
-			this->Gravity_Norm->Text = L"Gravity Norm";
-			this->Gravity_Norm->UseVisualStyleBackColor = true;
-			this->Gravity_Norm->CheckedChanged += gcnew System::EventHandler(this, &Form1::Gravity_Norm_CheckedChanged);
-			// 
-			// Linear_Acceleration_Norm
-			// 
-			this->Linear_Acceleration_Norm->AutoSize = true;
-			this->Linear_Acceleration_Norm->Checked = true;
-			this->Linear_Acceleration_Norm->CheckState = System::Windows::Forms::CheckState::Checked;
-			this->Linear_Acceleration_Norm->Location = System::Drawing::Point(1691, 100);
-			this->Linear_Acceleration_Norm->Name = L"Linear_Acceleration_Norm";
-			this->Linear_Acceleration_Norm->Size = System::Drawing::Size(145, 16);
-			this->Linear_Acceleration_Norm->TabIndex = 10;
-			this->Linear_Acceleration_Norm->Text = L"Linear Acceleration Norm";
-			this->Linear_Acceleration_Norm->UseVisualStyleBackColor = true;
-			this->Linear_Acceleration_Norm->CheckedChanged += gcnew System::EventHandler(this, &Form1::Linear_Acceleration_Norm_CheckedChanged);
 			// 
 			// feature_selection_label
 			// 
@@ -252,36 +225,84 @@ namespace OpenGL_on_a_Windows_Form
 			this->feature_selection_label->TabIndex = 11;
 			this->feature_selection_label->Text = L"Feature Selection";
 			// 
-			// Gyroscope_Norm
+			// residential_in
 			// 
-			this->Gyroscope_Norm->AutoSize = true;
-			this->Gyroscope_Norm->Checked = true;
-			this->Gyroscope_Norm->CheckState = System::Windows::Forms::CheckState::Checked;
-			this->Gyroscope_Norm->Location = System::Drawing::Point(1691, 138);
-			this->Gyroscope_Norm->Name = L"Gyroscope_Norm";
-			this->Gyroscope_Norm->Size = System::Drawing::Size(104, 16);
-			this->Gyroscope_Norm->TabIndex = 12;
-			this->Gyroscope_Norm->Text = L"Gyroscope Norm";
-			this->Gyroscope_Norm->UseVisualStyleBackColor = true;
-			this->Gyroscope_Norm->CheckedChanged += gcnew System::EventHandler(this, &Form1::Gyroscope_Norm_CheckedChanged);
+			this->residential_in->AutoSize = true;
+			this->residential_in->Checked = true;
+			this->residential_in->CheckState = System::Windows::Forms::CheckState::Checked;
+			this->residential_in->Location = System::Drawing::Point(1691, 61);
+			this->residential_in->Name = L"residential_in";
+			this->residential_in->Size = System::Drawing::Size(96, 16);
+			this->residential_in->TabIndex = 9;
+			this->residential_in->Text = L"Redisential (In)";
+			this->residential_in->UseVisualStyleBackColor = true;
+			this->residential_in->CheckedChanged += gcnew System::EventHandler(this, &Form1::residential_in_CheckedChanged);
 			// 
-			// First_Order_of_Distance
+			// residential_out
 			// 
-			this->First_Order_of_Distance->AutoSize = true;
-			this->First_Order_of_Distance->Checked = true;
-			this->First_Order_of_Distance->CheckState = System::Windows::Forms::CheckState::Checked;
-			this->First_Order_of_Distance->Location = System::Drawing::Point(1691, 179);
-			this->First_Order_of_Distance->Name = L"First_Order_of_Distance";
-			this->First_Order_of_Distance->Size = System::Drawing::Size(129, 16);
-			this->First_Order_of_Distance->TabIndex = 13;
-			this->First_Order_of_Distance->Text = L"First Order of Distance";
-			this->First_Order_of_Distance->UseVisualStyleBackColor = true;
-			this->First_Order_of_Distance->CheckedChanged += gcnew System::EventHandler(this, &Form1::First_Order_of_Distance_CheckedChanged);
+			this->residential_out->AutoSize = true;
+			this->residential_out->Checked = true;
+			this->residential_out->CheckState = System::Windows::Forms::CheckState::Checked;
+			this->residential_out->Location = System::Drawing::Point(1691, 100);
+			this->residential_out->Name = L"residential_out";
+			this->residential_out->Size = System::Drawing::Size(103, 16);
+			this->residential_out->TabIndex = 10;
+			this->residential_out->Text = L"Redisential (Out)";
+			this->residential_out->UseVisualStyleBackColor = true;
+			this->residential_out->CheckedChanged += gcnew System::EventHandler(this, &Form1::residential_out_CheckedChanged);
+			// 
+			// work_school_in
+			// 
+			this->work_school_in->AutoSize = true;
+			this->work_school_in->Checked = true;
+			this->work_school_in->CheckState = System::Windows::Forms::CheckState::Checked;
+			this->work_school_in->Location = System::Drawing::Point(1691, 138);
+			this->work_school_in->Name = L"work_school_in";
+			this->work_school_in->Size = System::Drawing::Size(107, 16);
+			this->work_school_in->TabIndex = 12;
+			this->work_school_in->Text = L"Work/School (In)";
+			this->work_school_in->UseVisualStyleBackColor = true;
+			this->work_school_in->CheckedChanged += gcnew System::EventHandler(this, &Form1::work_school_in_CheckedChanged);
+			// 
+			// work_school_out
+			// 
+			this->work_school_out->AutoSize = true;
+			this->work_school_out->Checked = true;
+			this->work_school_out->CheckState = System::Windows::Forms::CheckState::Checked;
+			this->work_school_out->Location = System::Drawing::Point(1691, 179);
+			this->work_school_out->Name = L"work_school_out";
+			this->work_school_out->Size = System::Drawing::Size(114, 16);
+			this->work_school_out->TabIndex = 13;
+			this->work_school_out->Text = L"Work/School (Out)";
+			this->work_school_out->UseVisualStyleBackColor = true;
+			this->work_school_out->CheckedChanged += gcnew System::EventHandler(this, &Form1::work_school_out_CheckedChanged);
+			// 
+			// tourism_in
+			// 
+			this->tourism_in->AutoSize = true;
+			this->tourism_in->Location = System::Drawing::Point(1691, 218);
+			this->tourism_in->Name = L"tourism_in";
+			this->tourism_in->Size = System::Drawing::Size(84, 16);
+			this->tourism_in->TabIndex = 18;
+			this->tourism_in->Text = L"Tourism (In)";
+			this->tourism_in->UseVisualStyleBackColor = true;
+			this->tourism_in->CheckedChanged += gcnew System::EventHandler(this, &Form1::tourism_in_CheckedChanged);
+			// 
+			// tourism_out
+			// 
+			this->tourism_out->AutoSize = true;
+			this->tourism_out->Location = System::Drawing::Point(1691, 256);
+			this->tourism_out->Name = L"tourism_out";
+			this->tourism_out->Size = System::Drawing::Size(91, 16);
+			this->tourism_out->TabIndex = 19;
+			this->tourism_out->Text = L"Tourism (Out)";
+			this->tourism_out->UseVisualStyleBackColor = true;
+			this->tourism_out->CheckedChanged += gcnew System::EventHandler(this, &Form1::tourism_out_CheckedChanged);
 			// 
 			// cluster_label
 			// 
 			this->cluster_label->AutoSize = true;
-			this->cluster_label->Location = System::Drawing::Point(1689, 224);
+			this->cluster_label->Location = System::Drawing::Point(1689, 337);
 			this->cluster_label->Name = L"cluster_label";
 			this->cluster_label->Size = System::Drawing::Size(129, 12);
 			this->cluster_label->TabIndex = 14;
@@ -289,14 +310,14 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// progressBar1
 			// 
-			this->progressBar1->Location = System::Drawing::Point(1682, 436);
+			this->progressBar1->Location = System::Drawing::Point(1682, 527);
 			this->progressBar1->Name = L"progressBar1";
 			this->progressBar1->Size = System::Drawing::Size(196, 23);
 			this->progressBar1->TabIndex = 15;
 			// 
 			// load_csv
 			// 
-			this->load_csv->Location = System::Drawing::Point(1721, 538);
+			this->load_csv->Location = System::Drawing::Point(1735, 613);
 			this->load_csv->Name = L"load_csv";
 			this->load_csv->Size = System::Drawing::Size(115, 32);
 			this->load_csv->TabIndex = 16;
@@ -325,15 +346,17 @@ namespace OpenGL_on_a_Windows_Form
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1916, 1054);
+			this->Controls->Add(this->tourism_out);
+			this->Controls->Add(this->tourism_in);
 			this->Controls->Add(this->file_directory);
 			this->Controls->Add(this->load_csv);
 			this->Controls->Add(this->progressBar1);
 			this->Controls->Add(this->cluster_label);
-			this->Controls->Add(this->First_Order_of_Distance);
-			this->Controls->Add(this->Gyroscope_Norm);
+			this->Controls->Add(this->work_school_out);
+			this->Controls->Add(this->work_school_in);
 			this->Controls->Add(this->feature_selection_label);
-			this->Controls->Add(this->Linear_Acceleration_Norm);
-			this->Controls->Add(this->Gravity_Norm);
+			this->Controls->Add(this->residential_out);
+			this->Controls->Add(this->residential_in);
 			this->Controls->Add(this->textBox1);
 			this->Controls->Add(this->Detail_Clear);
 			this->Controls->Add(this->trackBar1);
@@ -374,13 +397,6 @@ namespace OpenGL_on_a_Windows_Form
 				 if(Move_3_21_flag==false && Move_12_horiz_flag==false && Move_12_vert_flag==false) 
 					 this->Cursor = System::Windows::Forms::Cursors::Default;
 
-				 //this->progressBar1->Value = preprocessing_data.progress_value;
-				 //if(start_flag) progressBar1->Value += 1;
-				 //if(progressBar1->Value==progressBar1->Maximum)
-				 //{
-					//start_flag = false;
-					//progressBar1->Value = 0;
-				 //}
 			 }
 
 	private: System::Void start_Click(System::Object^  sender, System::EventArgs^  e) 
@@ -390,18 +406,17 @@ namespace OpenGL_on_a_Windows_Form
 				 histogram->clear();
 				 rawData->clear();
 				 detail->clear();
-				 //progressBar1->Style = ProgressBarStyle::Continuous;
-				 //progressBar1->MarqueeAnimationSpeed = 30;
 
-				 preprocessing_data.Initial_selection_flag(this->Gravity_Norm->Checked,this->Linear_Acceleration_Norm->Checked,
-															this->Gyroscope_Norm->Checked,this->First_Order_of_Distance->Checked);
+				preprocessing_data.Initial_selection_flag(this->residential_in->Checked,
+														  this->residential_out->Checked,
+														  this->work_school_in->Checked,
+														  this->work_school_out->Checked,
+														  this->tourism_in->Checked,
+														  this->tourism_out->Checked);
 				 
-				 //preprocessing_data.start2(read_csv.month_vec,read_csv.holiday_vec,trackBar1->Value);
 				 preprocessing_data.start3(read_csv.month_vec,read_csv.day_amount,read_csv.hour_amount,trackBar1->Value);
-				 //preprocessing_data.start(read_csv.raw_data,read_csv.attribute_index,read_csv.time_index,trackBar1->Value);
-				 //System::Windows::Forms::MessageBox::Show(trackBar1->Value.ToString());
-				 //progressBar1->Style = ProgressBarStyle::Marquee;
-				 //progressBar1->MarqueeAnimationSpeed = 0;
+
+
 			 }
 
     private: System::Void button2_Click(System::Object^  sender, System::EventArgs^  e) 
@@ -457,14 +472,14 @@ namespace OpenGL_on_a_Windows_Form
 				 rawData->clear();
 				 histogram->clear();
 				 histogram_position_table.clear();
-				 preprocessing_data.Initial_selection_flag(this->Gravity_Norm->Checked,this->Linear_Acceleration_Norm->Checked,
-															this->Gyroscope_Norm->Checked,this->First_Order_of_Distance->Checked);
+				 //preprocessing_data.Initial_selection_flag(this->Gravity_Norm->Checked,this->Linear_Acceleration_Norm->Checked,
+				 //											this->Gyroscope_Norm->Checked,this->First_Order_of_Distance->Checked);
 				 //Gravity_Norm->Checked = this->Gravity_Norm->Checked;
 				 //Linear_Acceleration_Norm->Checked = this->Linear_Acceleration_Norm->Checked;
 				 //Gyroscope_Norm->Checked = this->Gyroscope_Norm->Checked;
 				 //First_Order_of_Distance->Checked = this->First_Order_of_Distance->Checked;
 				 
-				 preprocessing_data.start(read_csv.raw_data,read_csv.attribute_index,read_csv.time_index,trackBar1->Value);
+				 //preprocessing_data.start(read_csv.raw_data,read_csv.attribute_index,read_csv.time_index,trackBar1->Value);
 				 //System::Windows::Forms::MessageBox::Show(preprocessing_data.num_of_five_minutes.ToString() + " " + histogram_position_table.size());
 				 histogram->resize();
 				 //System::Windows::Forms::MessageBox::Show(preprocessing_data.num_of_five_minutes.ToString() + " " + histogram_position_table.size());
@@ -608,29 +623,55 @@ namespace OpenGL_on_a_Windows_Form
 					Form::Focus();
 			 }
 
-	private: System::Void Gravity_Norm_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
-				 if(Gravity_Norm->Checked)
-					 preprocessing_data.select_gravity = true;
-				 else
-					 preprocessing_data.select_gravity = false;
+	private: System::Void residential_in_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
+				//preprocessing_data.Initial_selection_flag(this->residential_in->Checked,
+				//										  this->residential_out->Checked,
+				//										  this->work_school_in->Checked,
+				//										  this->work_school_out->Checked,
+				//										  this->tourism_in->Checked,
+				//										  this->tourism_out->Checked);
 			 }
-	private: System::Void Linear_Acceleration_Norm_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
-				 if(Linear_Acceleration_Norm->Checked)
-					 preprocessing_data.select_linear_acc = true;
-				 else
-					 preprocessing_data.select_linear_acc = false;
+	private: System::Void residential_out_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
+				//preprocessing_data.Initial_selection_flag(this->residential_in->Checked,
+				//										  this->residential_out->Checked,
+				//										  this->work_school_in->Checked,
+				//										  this->work_school_out->Checked,
+				//										  this->tourism_in->Checked,
+				//										  this->tourism_out->Checked);
 			 }
-	private: System::Void Gyroscope_Norm_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
-				 if(Gyroscope_Norm->Checked)
-					 preprocessing_data.select_gyro = true;
-				 else
-					 preprocessing_data.select_gyro = false;
+	private: System::Void work_school_in_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
+	//			preprocessing_data.Initial_selection_flag(this->residential_in->Checked,
+	//													  this->residential_out->Checked,
+	//													  this->work_school_in->Checked,
+	//													  this->work_school_out->Checked,
+	//													  this->tourism_in->Checked,
+	//													  this->tourism_out->Checked);
 			 }
-	private: System::Void First_Order_of_Distance_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
-				 if(First_Order_of_Distance->Checked)
-					 preprocessing_data.select_distance = true;
-				 else
-					 preprocessing_data.select_distance = false;
+	private: System::Void work_school_out_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
+				//preprocessing_data.Initial_selection_flag(this->residential_in->Checked,
+				//										  this->residential_out->Checked,
+				//										  this->work_school_in->Checked,
+				//										  this->work_school_out->Checked,
+				//										  this->tourism_in->Checked,
+				//										  this->tourism_out->Checked);
+			 }
+
+	private: System::Void tourism_in_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
+				//preprocessing_data.Initial_selection_flag(this->residential_in->Checked,
+				//										  this->residential_out->Checked,
+				//										  this->work_school_in->Checked,
+				//										  this->work_school_out->Checked,
+				//										  this->tourism_in->Checked,
+				//										  this->tourism_out->Checked);
+			 }
+
+	private: System::Void tourism_out_CheckedChanged(System::Object^  sender, System::EventArgs^  e) {
+				//preprocessing_data.Initial_selection_flag(this->residential_in->Checked,
+				//										  this->residential_out->Checked,
+				//										  this->work_school_in->Checked,
+				//										  this->work_school_out->Checked,
+				//										  this->tourism_in->Checked,
+				//										  this->tourism_out->Checked);
 			 }
 
 	private: System::Void backgroundWorker1_ProgressChanged(System::Object^  sender, System::ComponentModel::ProgressChangedEventArgs^  e) {
@@ -647,10 +688,12 @@ namespace OpenGL_on_a_Windows_Form
 					backgroundWorker1->ReportProgress(i);
 				}    
 			 }
-private: System::Void panel2_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
-		 }
-private: System::Void Form1_Load(System::Object^  sender, System::EventArgs^  e) {
-		 }
-};
+
+	private: System::Void panel2_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
+			 }
+	private: System::Void Form1_Load(System::Object^  sender, System::EventArgs^  e) {
+			 }
+
+	};
 }
 

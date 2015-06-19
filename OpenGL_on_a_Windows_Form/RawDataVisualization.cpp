@@ -43,160 +43,166 @@ namespace OpenGLForm{
 			glLoadIdentity();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Clear the screen and depth buffer
 
-			glTranslatef(50.0+move_x[1],180.0+move_y[1],0.0+move_z[1]);
+			glTranslatef(120.0+move_x[1],150.0+move_y[1],0.0+move_z[1]);
 			glScalef(scale_factor[1]+scale_x[1],scale_factor[1]+scale_y[1],scale_factor[1]+scale_z[1]);
 			glGetDoublev(GL_MODELVIEW_MATRIX, ModelViewMatrix2);//////////////
 
 			if(!histogram_index.empty())
 			{
 				int y_position = 0;
+				int y_position_text = 0;
 				for(int u=0;u<histogram_index.size();u++)
 				{
 					int idx = histogram_index[u];
-					Mat result = preprocessing_data.find_month_and_day(idx).clone();
-					int this_month = result.at<int>(0,0);
-					int this_day = result.at<int>(0,1);
+					int this_month = preprocessing_data.find_month_and_day[idx].at<int>(0,0);
+					int this_day = preprocessing_data.find_month_and_day[idx].at<int>(0,1);
+
+					DrawText_FTGL(this_month+1,-50,y_position_text,20.0);
+					DrawText_FTGL(this_day+1,-35,y_position_text,20.0);
+					y_position_text+=10000;
 
 					for(int i=0;i<23;i++)
 					{
-						int hour_data_current = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0]
-											  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[1]
-											  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[2]
-											  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[3];
-						int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0]
-										   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1]
-										   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[2]
-										   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[3];
-						glPushMatrix(); 
-						glBegin(GL_QUADS); 
-							glColor3f(1,1,0);  
-							glVertex3f(i*15,y_position,0);
-							glVertex3f((i+1)*15,y_position,0);
-							glVertex3f((i+1)*15,y_position-hour_data_next,0); 
-							glVertex3f(i*15,y_position-hour_data_current,0);						
-						glEnd();
-						glPopMatrix();
+						if(preprocessing_data.data_dim>=6)
+						{
+							int hour_data_current = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0]
+												  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[1]
+												  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[2]
+												  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[3]
+												  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[4]
+												  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[5];
+							int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0]
+											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1]
+											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[2]
+											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[3]
+											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[4]
+											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[5];
+							glPushMatrix(); 
+							glBegin(GL_QUADS); 
+								glColor3f(1,0,1);  
+								glVertex3f(i*15,y_position,0);
+								glVertex3f((i+1)*15,y_position,0);
+								glVertex3f((i+1)*15,y_position-hour_data_next,0); 
+								glVertex3f(i*15,y_position-hour_data_current,0);						
+							glEnd();
+							glPopMatrix();
+						}
+					}
+
+					for(int i=0;i<23;i++)
+					{
+						if(preprocessing_data.data_dim>=5)
+						{
+							int hour_data_current = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0]
+												  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[1]
+												  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[2]
+												  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[3]
+												  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[4];
+							int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0]
+											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1]
+											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[2]
+											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[3]
+											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[4];
+							glPushMatrix(); 
+							glBegin(GL_QUADS); 
+								glColor3f(0,1,1);  
+								glVertex3f(i*15,y_position,0);
+								glVertex3f((i+1)*15,y_position,0);
+								glVertex3f((i+1)*15,y_position-hour_data_next,0); 
+								glVertex3f(i*15,y_position-hour_data_current,0);						
+							glEnd();
+							glPopMatrix();
+						}
+					}
+
+					for(int i=0;i<23;i++)
+					{
+						if(preprocessing_data.data_dim>=4)
+						{
+							int hour_data_current = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0]
+												  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[1]
+												  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[2]
+												  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[3];
+							int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0]
+											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1]
+											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[2]
+											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[3];
+							glPushMatrix(); 
+							glBegin(GL_QUADS); 
+								glColor3f(1,1,0);  
+								glVertex3f(i*15,y_position,0);
+								glVertex3f((i+1)*15,y_position,0);
+								glVertex3f((i+1)*15,y_position-hour_data_next,0); 
+								glVertex3f(i*15,y_position-hour_data_current,0);						
+							glEnd();
+							glPopMatrix();
+						}
+					}
+
+					for(int i=0;i<23;i++)
+					{
+						if(preprocessing_data.data_dim>=3)
+						{
+							int hour_data_current = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0]
+												  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[1]
+												  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[2];
+							int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0]
+											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1]
+											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[2];
+							glPushMatrix(); 
+							glBegin(GL_QUADS); 
+								glColor3f(0,0,1);  
+								glVertex3f(i*15,y_position,0);
+								glVertex3f((i+1)*15,y_position,0);
+								glVertex3f((i+1)*15,y_position-hour_data_next,0); 
+								glVertex3f(i*15,y_position-hour_data_current,0);						
+							glEnd();
+							glPopMatrix();
+						}
 					}
 					for(int i=0;i<23;i++)
 					{
-						int hour_data_current = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0]
-											  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[1]
-											  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[2];
-						int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0]
-										   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1]
-										   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[2];
-						glPushMatrix(); 
-						glBegin(GL_QUADS); 
-							glColor3f(0,0,1);  
-							glVertex3f(i*15,y_position,0);
-							glVertex3f((i+1)*15,y_position,0);
-							glVertex3f((i+1)*15,y_position-hour_data_next,0); 
-							glVertex3f(i*15,y_position-hour_data_current,0);						
-						glEnd();
-						glPopMatrix();
+						if(preprocessing_data.data_dim>=2)
+						{
+							int hour_data_current = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0]
+												  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[1];
+							int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0]
+											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1];
+							glPushMatrix(); 
+							glBegin(GL_QUADS); 
+								glColor3f(0,1,0); 
+								glVertex3f(i*15,y_position,0);
+								glVertex3f((i+1)*15,y_position,0);
+								glVertex3f((i+1)*15,y_position-hour_data_next,0); 
+								glVertex3f(i*15,y_position-hour_data_current,0);						
+							glEnd();
+							glPopMatrix();
+						}
 					}
 					for(int i=0;i<23;i++)
 					{
-						int hour_data_current = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0]
-											  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[1];
-						int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0]
-										   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1];
-						glPushMatrix(); 
-						glBegin(GL_QUADS); 
-							glColor3f(0,1,0); 
-							glVertex3f(i*15,y_position,0);
-							glVertex3f((i+1)*15,y_position,0);
-							glVertex3f((i+1)*15,y_position-hour_data_next,0); 
-							glVertex3f(i*15,y_position-hour_data_current,0);						
-						glEnd();
-						glPopMatrix();
+						if(preprocessing_data.data_dim>=1)
+						{
+							DrawText_FTGL(i,i*15-5,y_position+750,12.0);
+							int hour_data_current= preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0];
+							int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0];
+							glPushMatrix(); 
+							glBegin(GL_QUADS); 
+								glColor3f(1,0,0); 
+								glVertex3f(i*15,y_position,0);
+								glVertex3f((i+1)*15,y_position,0);
+								glVertex3f((i+1)*15,y_position-hour_data_next,0); 
+								glVertex3f(i*15,y_position-hour_data_current,0);						
+							glEnd();
+							glPopMatrix();
+						}
 					}
-					for(int i=0;i<23;i++)
-					{
-						int hour_data_current= preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0];
-						int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0];
-						glPushMatrix(); 
-						glBegin(GL_QUADS); 
-							glColor3f(1,0,0); 
-							glVertex3f(i*15,y_position,0);
-							glVertex3f((i+1)*15,y_position,0);
-							glVertex3f((i+1)*15,y_position-hour_data_next,0); 
-							glVertex3f(i*15,y_position-hour_data_current,0);						
-						glEnd();
-						glPopMatrix();
-					}
+					DrawText_FTGL(23,23*15-5,y_position+750,12.0);
 
 					y_position+= 10000;
 				}
 			}
-			/*
-			vector<float> color;
-			color.resize(3);
 
-			int y_position = 40;
-			if(!histogram_index.empty())
-			{
-				
-				//draw hour(0-23) on the front
-				int text_position_x = 60;
-				for(int i=0;i<24;i++)
-				{
-					DrawText_FTGL(i,text_position_x,y_position-10,16.0);
-					text_position_x += 10;
-				}
-				
-				raw_data_position_table.resize(histogram_index.size());
-				for(int i=0;i<histogram_index.size();i++) raw_data_position_table[i].resize( preprocessing_data.raw_data_3D_array[ histogram_index[i] ].rows );
-
-				for(int i=0;i<histogram_index.size();i++)
-				{
-					int p = 60;
-					int index = 0;
-					//DrawTime_FTGL(preprocessing_data.month_vec[i].this_year,10,y_position+5);
-					//for(int j=histogram_index[i];j<histogram_index[i]+600;j++)
-					int idx = histogram_index[i];
-					Mat result = preprocessing_data.find_month_and_day(idx).clone();
-					int this_month = result.at<int>(0,0);
-					int this_day = result.at<int>(0,1);
-					DrawText_FTGL(this_month+1,10,y_position+10,15.0);
-					DrawText_FTGL(this_day+1,20,y_position+10,15.0);
-					
-					for(int j=0;j<preprocessing_data.raw_data_3D_array[idx].rows;j++)
-					{
-						RECTANGLE *rect;
-						rect = new RECTANGLE();
-						rect->h = 15;
-						rect->w = 10.0;
-						rect->x = p;
-						rect->y = y_position;
-						color[0] = preprocessing_data.raw_data_3D_array[idx].at<float>(j,0);
-						color[1] = preprocessing_data.raw_data_3D_array[idx].at<float>(j,1);
-						color[2] = preprocessing_data.raw_data_3D_array[idx].at<float>(j,2);
-						DrawRectWithOpenGL(rect,color);
-						delete(rect);
-						
-						raw_data_position_table[i][j].x = p;
-						raw_data_position_table[i][j].y = y_position;
-						raw_data_position_table[i][j].z = p + 10.0;
-						raw_data_position_table[i][j].w = y_position + 15;
-						raw_data_position_table[i][j].x *= (scale_factor[1] + scale_x[1]);
-						raw_data_position_table[i][j].y *= (scale_factor[1] + scale_y[1]);
-						raw_data_position_table[i][j].z *= (scale_factor[1] + scale_x[1]);
-						raw_data_position_table[i][j].w *= (scale_factor[1] + scale_y[1]);
-						raw_data_position_table[i][j].x += move_x[1];
-						raw_data_position_table[i][j].y += move_y[1];
-						raw_data_position_table[i][j].z += move_x[1];
-						raw_data_position_table[i][j].w += move_y[1];
-						
-						p+=10.0;
-						index++;
-					}
-
-					y_position += 40;
-				}
-				
-			}
-			*/
 			SwapOpenGLBuffers();
 			
 	}
