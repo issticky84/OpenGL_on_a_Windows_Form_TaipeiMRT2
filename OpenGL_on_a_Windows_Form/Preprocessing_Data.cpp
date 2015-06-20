@@ -37,6 +37,8 @@ extern void cuda_kmeans(Mat, int, Mat& , Mat&);
 Preprocessing_Data::Preprocessing_Data()
 {
 	read_lab_csv();
+
+	comboBox_indx = 0;
 }
 
 void Preprocessing_Data::Initial_selection_flag(bool f1, bool f2, bool f3, bool f4, bool f5, bool f6)
@@ -240,16 +242,19 @@ void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read
 	Mat group_index = Mat::zeros(histogram.rows,1,CV_32S); 
 	for(int i=0;i<histogram.rows;i++)
 		group_index.at<int>(i,0) = i;
-	TSP_boost_for_histogram_coarse_to_fine_multi(Ev_global, group_index, histo_sort_index);
-	//TSP_boost_for_histogram(cluster_centers,histo_sort_index);
-	sort_histogram_by_Ev_by_TSP_coarse_to_fine(cluster_centers,histo_sort_index);
+	//TSP_boost_for_histogram_coarse_to_fine_multi(Ev_global, group_index, histo_sort_index);
+	//sort_histogram_by_Ev_by_TSP_coarse_to_fine(cluster_centers,histo_sort_index);
 	output_mat_as_csv_file_int("histo_sort_index.csv",histo_sort_index);
 	
-	
+	//==============MDS=====================//
+	position = Position_by_MDS(cluster_centers,k,1.0).clone(); //Type:double
+
+	//
+	/*
 	Mat histo_position = Mat::zeros(histogram.rows,1,CV_64F);
 	Position_by_histogram_sort_index(histo_position,histo_sort_index);
 	position = histo_position.clone();
-
+	*/
 	output_mat_as_csv_file_double("position.csv",position);
 	//======================raw data 3D color by lab alignment===================//
 	
@@ -3073,7 +3078,7 @@ void Preprocessing_Data::TSP_boost_for_histogram_coarse_to_fine_multi(Mat Ev, Ma
 	int five_minutes = Ev.rows; 
 	int dim = Ev.cols;
 		
-	int group_num = 3;
+	int group_num = 6;
 	Mat cluster_tag = Mat::zeros(five_minutes,1,CV_32S);
 	Mat group_cluster_centers = Mat::zeros(group_num,dim,CV_32F);
 	kmeans(Ev, group_num, cluster_tag, TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 100, 0.0001), 2,KMEANS_PP_CENTERS,group_cluster_centers);
@@ -3497,7 +3502,7 @@ void Preprocessing_Data::Position_by_histogram_sort_index(Mat& histo_position,Ma
 			vote_dist += abs( histogram_copy.at<int>(index,j) - histogram_copy.at<int>(index2,j) );
 		}
 
-		dist.at<double>(0,i) = pow(vote_dist,2);
+		dist.at<double>(0,i) = pow(vote_dist,3);
 	}
 	output_mat_as_csv_file_double("vote_dist.csv",dist.t());
 	

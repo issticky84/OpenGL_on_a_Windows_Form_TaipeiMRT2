@@ -95,6 +95,9 @@ namespace OpenGL_on_a_Windows_Form
 	private: System::ComponentModel::BackgroundWorker^  backgroundWorker1;
 	private: System::Windows::Forms::CheckBox^  tourism_in;
 	private: System::Windows::Forms::CheckBox^  tourism_out;
+	private: System::Windows::Forms::ComboBox^  comboBox1;
+
+
 
 	public:  System::Windows::Forms::OpenFileDialog ofdOpen;
 	//private: System::String^ file_string;
@@ -126,6 +129,7 @@ namespace OpenGL_on_a_Windows_Form
 			this->load_csv = (gcnew System::Windows::Forms::Button());
 			this->file_directory = (gcnew System::Windows::Forms::Label());
 			this->backgroundWorker1 = (gcnew System::ComponentModel::BackgroundWorker());
+			this->comboBox1 = (gcnew System::Windows::Forms::ComboBox());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->trackBar1))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -137,9 +141,9 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// panel1
 			// 
-			this->panel1->Location = System::Drawing::Point(718, 12);
+			this->panel1->Location = System::Drawing::Point(718, 36);
 			this->panel1->Name = L"panel1";
-			this->panel1->Size = System::Drawing::Size(841, 1030);
+			this->panel1->Size = System::Drawing::Size(841, 1006);
 			this->panel1->TabIndex = 0;
 			this->panel1->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &Form1::panel1_Paint);
 			this->panel1->MouseEnter += gcnew System::EventHandler(this, &Form1::panel1_MouseEnter);
@@ -157,9 +161,9 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// panel3
 			// 
-			this->panel3->Location = System::Drawing::Point(12, 12);
+			this->panel3->Location = System::Drawing::Point(12, 36);
 			this->panel3->Name = L"panel3";
-			this->panel3->Size = System::Drawing::Size(700, 1030);
+			this->panel3->Size = System::Drawing::Size(700, 1006);
 			this->panel3->TabIndex = 2;
 			this->panel3->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &Form1::panel3_Paint);
 			this->panel3->MouseEnter += gcnew System::EventHandler(this, &Form1::panel3_MouseEnter);
@@ -325,11 +329,24 @@ namespace OpenGL_on_a_Windows_Form
 			this->backgroundWorker1->DoWork += gcnew System::ComponentModel::DoWorkEventHandler(this, &Form1::backgroundWorker1_DoWork);
 			this->backgroundWorker1->RunWorkerCompleted += gcnew System::ComponentModel::RunWorkerCompletedEventHandler(this, &Form1::backgroundWorker1_RunWorkerCompleted);
 			// 
+			// comboBox1
+			// 
+			this->comboBox1->FormattingEnabled = true;
+			this->comboBox1->Items->AddRange(gcnew cli::array< System::Object^  >(4) {L"All", L"Weekday", L"Weekend", L"Holiday"});
+			this->comboBox1->Location = System::Drawing::Point(591, 10);
+			this->comboBox1->Name = L"comboBox1";
+			this->comboBox1->Size = System::Drawing::Size(121, 20);
+			this->comboBox1->TabIndex = 20;
+			this->comboBox1->Text = L"All";
+			this->comboBox1->SelectedIndexChanged += gcnew System::EventHandler(this, &Form1::comboBox1_SelectedIndexChanged);
+
+			// 
 			// Form1
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1916, 1054);
+			this->Controls->Add(this->comboBox1);
 			this->Controls->Add(this->tourism_out);
 			this->Controls->Add(this->tourism_in);
 			this->Controls->Add(this->file_directory);
@@ -673,6 +690,13 @@ namespace OpenGL_on_a_Windows_Form
 	private: System::Void Form1_Load(System::Object^  sender, System::EventArgs^  e) {
 			 }
 
-	};
+	private: System::Void comboBox1_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e) {
+				 int selectedIndex = comboBox1->SelectedIndex;
+				 Object^ selectedItem = comboBox1->SelectedItem;
+
+				 preprocessing_data.comboBox_indx = selectedIndex;
+				 //System::Windows::Forms::MessageBox::Show("Selected Item Text: " + selectedItem + "\n" + "Index: " + selectedIndex.ToString());
+			 }
+};
 }
 

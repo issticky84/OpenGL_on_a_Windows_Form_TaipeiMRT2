@@ -50,10 +50,7 @@ namespace OpenGLForm{
 				windowHeight[0] = histogram_height;
 				 
 				DrawHistogramVisualization();
-				//let the histogram be flickering
-				counter++;
-				counter%=5;
-				if(counter==0) select_histogram_flag = false;
+
 
 				SwapOpenGLBuffers();		
 	}
@@ -121,6 +118,36 @@ namespace OpenGLForm{
 		return vector3(wpos[0] , wpos[1] , wpos[2]);
 	}
 
+	System::Void HistogramVisualization::DrawHistogram(int i, int j, int& day, int& y_coord, float& end_position)
+	{
+			int start = 0;
+			for(int k=0;k<preprocessing_data.histogram.cols;++k)
+			{   
+				if(preprocessing_data.histogram.at<int>(day,k)!=0)
+				{
+					vector<float>  draw_color(3);
+					int pixels = preprocessing_data.histogram.at<int>(day,k);
+					draw_color[0] = preprocessing_data.rgb_mat3.at<float>(k,0); 
+					draw_color[1] = preprocessing_data.rgb_mat3.at<float>(k,1); 
+					draw_color[2] = preprocessing_data.rgb_mat3.at<float>(k,2);
+
+					for(int u=start;u<start+pixels;++u)
+					{
+						RECTANGLE *rect;
+						rect = new RECTANGLE();
+						rect->h = 6.0;
+						rect->w = 3.0;
+						rect->x = 110 + preprocessing_data.position.at<double>(day,0)/10.0 + (double)u*3.0;
+						rect->y = y_coord;
+						DrawRectWithOpenGL(rect,draw_color);	
+						end_position = rect->x;
+						delete(rect);
+					}
+					start += pixels;
+				}		
+			}		
+	}
+
 	System::Void HistogramVisualization::DrawHistogramVisualization(System::Void){
 			vector<float>  draw_color;	
 			draw_color.resize(3);
@@ -186,6 +213,27 @@ namespace OpenGLForm{
 						float end_position;
 						current_hour = preprocessing_data.month_vec[i].this_month;
 
+						int this_week = preprocessing_data.zellers_congruence_for_week(2011, i+1, j+1);
+
+						if(scale_x[0] > 0.3)
+						{
+							if(this_week == 6 || this_week == 7)
+							{
+								draw_color[0] = 0.3; 
+								draw_color[1] = 0; 
+								draw_color[2] = 0;
+								RECTANGLE *line;
+								line = new RECTANGLE();
+								line->h = 1.0;
+								line->w = 1800;
+								line->x = -400;
+								line->y = y_coord - 0.3;
+								DrawRectWithOpenGL(line,draw_color);
+								delete(line);						
+							}
+						}
+
+
 						if(current_hour!=last_hour)
 						{
 							draw_color[0] = 1; 
@@ -204,59 +252,41 @@ namespace OpenGLForm{
 							delete(line);
 						}
 	
-							int start = 0;
-							for(int k=0;k<preprocessing_data.histogram.cols;++k)
-							{   
-								if(preprocessing_data.histogram.at<int>(day,k)!=0)
-								{
-									pixels = preprocessing_data.histogram.at<int>(day,k);
-									draw_color[0] = preprocessing_data.rgb_mat3.at<float>(k,0); 
-									draw_color[1] = preprocessing_data.rgb_mat3.at<float>(k,1); 
-									draw_color[2] = preprocessing_data.rgb_mat3.at<float>(k,2);
-
-									if((counter==2 || counter==4) && select_histogram_flag)
-									{
-										if(i==select_histogram_index)
-										{
-											draw_color[0] = 0; draw_color[1] = 0; draw_color[2] = 0;
-										}
-									}
-
-									for(int u=start;u<start+pixels;++u)
-									{
-										RECTANGLE *rect;
-										rect = new RECTANGLE();
-										rect->h = 6.0;
-										rect->w = 3.0;
-										rect->x = 110 + preprocessing_data.position.at<double>(day,0)/10.0 + (double)u*3.0;
-										rect->y = y_coord;
-										DrawRectWithOpenGL(rect,draw_color);	
-										end_position = rect->x;
-										delete(rect);
-									}
-									start += pixels;
-								}		
+						if(preprocessing_data.comboBox_indx==0)
+							DrawHistogram(i,j,day,y_coord,end_position);
+						else if(preprocessing_data.comboBox_indx==1)
+						{
+							if(this_week>=1 && this_week<=5){
+								DrawHistogram(i,j,day,y_coord,end_position);
 							}
+						}
+						else if(preprocessing_data.comboBox_indx==2)
+						{
+							if(this_week==6 || this_week==7){
+								DrawHistogram(i,j,day,y_coord,end_position);
+							}
+						}
 
-							//table record
-							histogram_position_table[day].x = 110 + preprocessing_data.position.at<double>(day,0)/10.0;
-							histogram_position_table[day].y = y_coord;
-							histogram_position_table[day].z = end_position;
-							histogram_position_table[day].w = y_coord + 6.0;
+						//table record
+						histogram_position_table[day].x = 110 + preprocessing_data.position.at<double>(day,0)/10.0;
+						histogram_position_table[day].y = y_coord;
+						histogram_position_table[day].z = end_position;
+						histogram_position_table[day].w = y_coord + 6.0;
 								
-							histogram_position_table[day].x *= (scale_factor[0] + scale_x[0]);
-							histogram_position_table[day].y *= (scale_factor[0] + scale_y[0]);
-							histogram_position_table[day].z *= (scale_factor[0] + scale_x[0]);
-							histogram_position_table[day].w *= (scale_factor[0] + scale_y[0]);
-							histogram_position_table[day].x += move_x[0];
-							histogram_position_table[day].y += move_y[0];
-							histogram_position_table[day].z += move_x[0];
-							histogram_position_table[day].w += move_y[0];
+						histogram_position_table[day].x *= (scale_factor[0] + scale_x[0]);
+						histogram_position_table[day].y *= (scale_factor[0] + scale_y[0]);
+						histogram_position_table[day].z *= (scale_factor[0] + scale_x[0]);
+						histogram_position_table[day].w *= (scale_factor[0] + scale_y[0]);
+						histogram_position_table[day].x += move_x[0];
+						histogram_position_table[day].y += move_y[0];
+						histogram_position_table[day].z += move_x[0];
+						histogram_position_table[day].w += move_y[0];
 
-							y_coord-=6;
-							last_hour = current_hour;
+						y_coord-=6;
+						last_hour = current_hour;
 
-							day++;
+						day++;
+
 					}
 				}
 			}

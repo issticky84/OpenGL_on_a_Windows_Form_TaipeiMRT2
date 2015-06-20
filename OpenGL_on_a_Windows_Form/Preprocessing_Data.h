@@ -109,6 +109,7 @@ public:
 	bool data_dim_flag[6];
 	Mat* find_month_and_day;
 	vector< vector<float> > data_color;
+	int comboBox_indx;
 };
 
 
