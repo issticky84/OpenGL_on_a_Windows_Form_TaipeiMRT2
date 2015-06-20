@@ -137,6 +137,7 @@ namespace OpenGLForm{
 			glLoadIdentity();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Clear the screen and depth buffer
 
+			//================================Time Line====================================//
 			glPushMatrix();
 			
 			glTranslatef(0.0,0.0+move_y[0],0.0+move_z[0]);
@@ -164,10 +165,10 @@ namespace OpenGLForm{
 			}
 
 			glPopMatrix();
-			
+			//=================================================================================//
+
 			glTranslatef(0.0+move_x[0],0.0+move_y[0],0.0+move_z[0]);
 			glScalef(scale_factor[0]+scale_x[0],scale_factor[0]+scale_y[0],scale_factor[0]+scale_z[0]);
-
 
 			if(!preprocessing_data.histogram.empty())
 			{
