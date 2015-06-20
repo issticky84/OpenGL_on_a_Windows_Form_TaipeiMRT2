@@ -63,6 +63,29 @@ void Preprocessing_Data::Initial_selection_flag(bool f1, bool f2, bool f3, bool 
 	if(f4==true) data_dim++;
 	if(f5==true) data_dim++;
 	if(f6==true) data_dim++;
+
+	data_color.resize(data_dim);
+	for(int i=0;i<data_dim;i++) data_color[i].resize(3);
+
+	vector<float> red(3),yellow(3),blue(3),violet(3),indigo(3),green(3);
+	red[0] = 1.0;		red[1] = 0.0;		red[2] = 0.0;
+	yellow[0] = 1.0;	yellow[1] = 1.0;	yellow[2] = 0.0;
+	blue[0] = 0.0;		blue[1] = 0.0;		blue[2] = 1.0;
+	violet[0] = 1.0;	violet[1] = 0.0;	violet[2] = 1.0;
+	indigo[0] = 0.0;	indigo[1] = 1.0;	indigo[2] = 1.0;
+	green[0] = 0.0;		green[1] = 1.0;		green[2] = 0.0;
+	
+	vector<float> color_list[] = {red,yellow,blue,violet,indigo,green};
+	int t = 0;
+	for(int i=0; i<6; i++)
+	{
+		if(data_dim_flag[i])
+		{
+			data_color[t] = color_list[i];
+			t++;
+		}
+	}
+
 }
 
 void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read, int hour_amount_read, int k)
@@ -155,18 +178,21 @@ void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read
 
 	output_mat_as_csv_file_float("model.csv",model);
 
+	//==============K means with cuda============================//
+	/*
+	Mat cluster_tag = Mat::zeros(model.rows,1,CV_32S);
+	Mat cluster_centers = Mat::zeros(k,model.cols,CV_32F);
+	cuda_kmeans(model, k, cluster_tag, cluster_centers);
+	*/
 	//==============K means clustering with no speed up==================//
 	
     Mat cluster_tag; //Tag:0~k-1
-    int attempts = 2;//應該是執行次數
+    int attempts = 1;//應該是執行次數
 	Mat cluster_centers;
 	//使用k means分群
-	clock_t begin3 = clock();
 	kmeans(model, k, cluster_tag,TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 100, 0.0001), attempts,KMEANS_PP_CENTERS,cluster_centers);
-	clock_t end3 = clock();
     //TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 10, 1),  這裡有三個參數，決定k-means何時結束，第二個參數是指迭代最大次數，第三個參數是精確度多少，第一個參數是指依照前兩個參數的哪一個為準，以範例中就是兩者都參照，以 or 的方式決定
-	printf("Kmeans (K = %d) elapsed time: %f\n",k,double(end3 - begin3) / CLOCKS_PER_SEC);
-
+	
 	output_mat_as_csv_file_float("cluster_centers_old.csv",cluster_centers);
 	//=================LAB alignment====================//
 	clock_t begin5 = clock();
@@ -181,7 +207,6 @@ void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read
 
 	//=============TSP for lab color================//
 	
-	clock_t begin8 = clock();
 	//TSP_for_lab_color(cluster_centers);
 	Mat lab_color_sort_index = Mat::zeros(k,1,CV_32S);
 	//TSP_boost_for_lab_color(lab,lab_color_sort_index);
@@ -190,8 +215,6 @@ void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read
 	//sort_pattern_by_color_by_TSP_coarse_to_fine(lab,lab_color_sort_index);
 	tsp_brute tsp;
 	tsp.tsp_path(lab,lab_color_sort_index);
-	clock_t end8 = clock();
-	printf("TSP for lab color elapsed time: %f\n",double(end8 - begin8) / CLOCKS_PER_SEC);
 	output_mat_as_csv_file_int("lab_color_sort_index.csv",lab_color_sort_index);
 
 	rearrange_mat_by_sort_color_index(lab_color_sort_index,cluster_centers,cluster_tag,rgb_mat3);
@@ -204,8 +227,20 @@ void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read
 	output_mat_as_csv_file_int("histogram.csv",histogram);
 
 	//===============Position (neighbor distance)=====================//
-	
+	Ev_global = Mat::zeros(histogram.rows,cluster_centers.cols,CV_32F);	
+	for(int i=0;i<histogram.rows;i++)
+	{
+		for(int j=0;j<k;j++)
+		{
+			Ev_global.row(i) += (histogram.at<int>(i,j)/600.0)*cluster_centers.row(j);
+		}
+	}
+
 	Mat histo_sort_index = Mat::zeros(histogram.rows,1,CV_32S); 
+	Mat group_index = Mat::zeros(histogram.rows,1,CV_32S); 
+	for(int i=0;i<histogram.rows;i++)
+		group_index.at<int>(i,0) = i;
+	TSP_boost_for_histogram_coarse_to_fine_multi(Ev_global, group_index, histo_sort_index);
 	//TSP_boost_for_histogram(cluster_centers,histo_sort_index);
 	sort_histogram_by_Ev_by_TSP_coarse_to_fine(cluster_centers,histo_sort_index);
 	output_mat_as_csv_file_int("histo_sort_index.csv",histo_sort_index);
@@ -3014,6 +3049,99 @@ void Preprocessing_Data::rearrange_mat_by_sort_color_index(Mat lab_color_sort_in
 		cluster_tag.at<int>(i,0) = find;	
 	}
 
+}
+
+void Preprocessing_Data::TSP_for_index(Mat& Ev_sub, Mat& histo_sort_index_sub, Mat& group_index)
+{
+	for(int i=0;i<group_index.rows;i++)
+	{
+		int idx = group_index.at<int>(i,0);
+		Ev_global.row(idx).copyTo( Ev_sub.row(i) );
+	}
+	Mat TSP_sort_index = Mat::zeros(group_index.rows,1,CV_32S);
+	TSP_boost_path_by_EdgeWeight(Ev_sub, TSP_sort_index);
+	for(int i=0;i<group_index.rows;i++)
+	{
+		int idx = TSP_sort_index.at<int>(i,0);
+		histo_sort_index_sub.at<int>(i,0) = group_index.at<int>(idx,0);
+	}
+}
+
+
+void Preprocessing_Data::TSP_boost_for_histogram_coarse_to_fine_multi(Mat Ev, Mat group_index, Mat& histo_sort_index)
+{
+	int five_minutes = Ev.rows; 
+	int dim = Ev.cols;
+		
+	int group_num = 3;
+	Mat cluster_tag = Mat::zeros(five_minutes,1,CV_32S);
+	Mat group_cluster_centers = Mat::zeros(group_num,dim,CV_32F);
+	kmeans(Ev, group_num, cluster_tag, TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 100, 0.0001), 2,KMEANS_PP_CENTERS,group_cluster_centers);
+	
+	Mat* groups_index = new Mat[group_num];
+	Mat* groups_index2 = new Mat[group_num];
+
+	for(int i=0;i<five_minutes;i++)
+	{
+		int index = group_index.at<int>(i,0);
+		int tag = cluster_tag.at<int>(i,0);
+		groups_index[tag].push_back(index);
+	}
+
+	cout << "index :" << endl;
+	for(int i=0;i<group_num;i++)
+	{
+		for(int j=0;j<groups_index[i].rows;j++)
+		{
+			cout << groups_index[i].at<int>(j,0) << " ";
+		}
+		cout << endl;
+	}
+
+	
+	Mat group_sort_index = Mat::zeros(group_num,1,CV_32S);
+	tsp_brute tsp;
+	tsp.tsp_path(group_cluster_centers,group_sort_index);
+
+	for(int i=0; i<group_num; i++)
+	{
+		int idx = group_sort_index.at<int>(i,0);
+		for(int j=0;j<groups_index[idx].rows;j++)
+		{
+			groups_index2[i].push_back( groups_index[idx].at<int>(0,j) );
+		}
+	}
+
+	cout << "index2 :" << endl;
+	for(int i=0;i<group_num;i++)
+	{
+		for(int j=0;j<groups_index2[i].rows;j++)
+		{
+			cout << groups_index2[i].at<int>(j,0) << " ";
+		}
+		cout << endl;
+	}
+	
+	int t = 0;
+	for (int i=0 ; i < group_num; i++)
+	{
+		Mat Ev_sub = Mat::zeros(groups_index2[i].rows, Ev.cols, CV_32F);
+		Mat histo_sort_index_sub = Mat::zeros(groups_index2[i].rows, 1, CV_32S);
+
+		//繼續分群
+		if (30 < groups_index2[i].rows ) {
+			TSP_boost_for_histogram_coarse_to_fine_multi(Ev_sub, groups_index2[i].col(0), histo_sort_index_sub);
+			cout << "histo_sort_index_sub 1" << histo_sort_index_sub << endl;
+		} else { //太小，直接算TSP
+			TSP_for_index(Ev_sub, histo_sort_index_sub, groups_index2[i].col(0) );
+			cout << "histo_sort_index_sub 2" << histo_sort_index_sub << endl;
+		}
+		
+		for(int j=0;j<groups_index2[i].rows;j++)
+		{
+			histo_sort_index.at<int>(t++,0) = histo_sort_index_sub.at<int>(j,0);
+		}
+	}
 }
 
 void Preprocessing_Data::sort_histogram_by_Ev_by_TSP_coarse_to_fine(Mat cluster_center, Mat& histo_sort_index)

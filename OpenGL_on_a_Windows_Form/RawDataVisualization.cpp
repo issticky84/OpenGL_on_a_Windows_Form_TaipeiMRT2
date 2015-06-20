@@ -79,7 +79,7 @@ namespace OpenGLForm{
 											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[5];
 							glPushMatrix(); 
 							glBegin(GL_QUADS); 
-								glColor3f(1,0,1);  
+							glColor3f(preprocessing_data.data_color[5][0],preprocessing_data.data_color[5][1],preprocessing_data.data_color[5][2]);  
 								glVertex3f(i*15,y_position,0);
 								glVertex3f((i+1)*15,y_position,0);
 								glVertex3f((i+1)*15,y_position-hour_data_next,0); 
@@ -105,7 +105,7 @@ namespace OpenGLForm{
 											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[4];
 							glPushMatrix(); 
 							glBegin(GL_QUADS); 
-								glColor3f(0,1,1);  
+								glColor3f(preprocessing_data.data_color[4][0],preprocessing_data.data_color[4][1],preprocessing_data.data_color[4][2]); 
 								glVertex3f(i*15,y_position,0);
 								glVertex3f((i+1)*15,y_position,0);
 								glVertex3f((i+1)*15,y_position-hour_data_next,0); 
@@ -129,7 +129,7 @@ namespace OpenGLForm{
 											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[3];
 							glPushMatrix(); 
 							glBegin(GL_QUADS); 
-								glColor3f(1,1,0);  
+								glColor3f(preprocessing_data.data_color[3][0],preprocessing_data.data_color[3][1],preprocessing_data.data_color[3][2]);   
 								glVertex3f(i*15,y_position,0);
 								glVertex3f((i+1)*15,y_position,0);
 								glVertex3f((i+1)*15,y_position-hour_data_next,0); 
@@ -151,7 +151,7 @@ namespace OpenGLForm{
 											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[2];
 							glPushMatrix(); 
 							glBegin(GL_QUADS); 
-								glColor3f(0,0,1);  
+								glColor3f(preprocessing_data.data_color[2][0],preprocessing_data.data_color[2][1],preprocessing_data.data_color[2][2]); 
 								glVertex3f(i*15,y_position,0);
 								glVertex3f((i+1)*15,y_position,0);
 								glVertex3f((i+1)*15,y_position-hour_data_next,0); 
@@ -170,7 +170,7 @@ namespace OpenGLForm{
 											   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1];
 							glPushMatrix(); 
 							glBegin(GL_QUADS); 
-								glColor3f(0,1,0); 
+								glColor3f(preprocessing_data.data_color[1][0],preprocessing_data.data_color[1][1],preprocessing_data.data_color[1][2]); 
 								glVertex3f(i*15,y_position,0);
 								glVertex3f((i+1)*15,y_position,0);
 								glVertex3f((i+1)*15,y_position-hour_data_next,0); 
@@ -188,7 +188,7 @@ namespace OpenGLForm{
 							int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0];
 							glPushMatrix(); 
 							glBegin(GL_QUADS); 
-								glColor3f(1,0,0); 
+								glColor3f(preprocessing_data.data_color[0][0],preprocessing_data.data_color[0][1],preprocessing_data.data_color[0][2]); 
 								glVertex3f(i*15,y_position,0);
 								glVertex3f((i+1)*15,y_position,0);
 								glVertex3f((i+1)*15,y_position-hour_data_next,0); 

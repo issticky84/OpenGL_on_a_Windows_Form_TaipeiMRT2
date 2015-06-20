@@ -35,110 +35,31 @@ namespace OpenGLForm{
 			vector<float> color;
 			color.resize(3);
 
-			//DrawLine(0,480,windowWidth[2]*2,480);
-			//DrawLine(450,0,450,1000);
-			
-			
-			if(!raw_data_index_2D.empty())
-			{	
-					//int x_position = 200;
-					//int y_position = 150;
-					int x_position[] = {70,70,550,550,950,950};
-					int y_position[] = {100,500,100,500,100,500};
-					for(int dim=0;dim<4;dim++)
-					{
-						DrawTitle_FTGL(dim,x_position[dim],y_position[dim]-50);
-						for(int i=0;i<raw_data_index_2D.size();i++)
-						{				
-							RECTANGLE *rect;
-							int index1 = raw_data_index_2D[i][0];
-							int index2 = raw_data_index_2D[i][1];
-							int count = 0;
-							int month,day;
-							for(int i=0;i<preprocessing_data.month_vec.size();i++)
-							{
-								for(int j=0;j<preprocessing_data.month_vec[i].day_vec.size();j++)
-								{
-									if(count==index1)
-									{
-										month = i;
-										day = j;
-										break;
-									}
-									count++;
-								}
-								if(count==index1) break;
-							}
 
-							int r=1.0,g=1.0,b=1.0;
+			int x_position = 50;
+			int y_position = 50;
+			int t = 0;
+			for(int i=5;i>=0;i--)
+			{
+				if(preprocessing_data.data_dim_flag[i])
+				{
+					DrawTitle_FTGL(i,x_position,y_position);
+					vector<float> draw_color(3);
+					draw_color[0] = preprocessing_data.data_color[t][0];
+					draw_color[1] = preprocessing_data.data_color[t][1];
+					draw_color[2] = preprocessing_data.data_color[t][2];
+					t++;
+					RECTANGLE *rect;
+					rect = new RECTANGLE();
+					rect->h = 20.0;
+					rect->w = 40.0;
+					rect->x = x_position+50;
+					rect->y = y_position+50;
+					DrawRectWithOpenGL(rect,draw_color);	
+					delete(rect);	
 
-							//DrawText_FTGL(preprocessing_data.month_vec[index1].this_year, x_position-150, y_position + 10, r, g, b);
-							//DrawText_FTGL_Zero_Padding(preprocessing_data.month_vec[index1].this_month, x_position-100, y_position + 10, r, g, b);
-							//DrawText_FTGL_Zero_Padding(index2+1, x_position-70, y_position + 10, r, g, b);
-							float value = 0.1*abs(preprocessing_data.month_vec[month].day_vec[day].hour_vec[index2].data[dim]);
-							DrawText_FTGL(preprocessing_data.month_vec[month].day_vec[day].hour_vec[index2].data[dim], x_position[dim] + value + 10, y_position[dim] + 10, 1.0, 1.0, 1.0);
-						
-							rect = new RECTANGLE();
-							rect->h = 30.0;
-							rect->w = value;
-							rect->x = x_position[dim];
-							rect->y = y_position[dim];
-							color[0] = preprocessing_data.raw_data_3D_array[index1].at<float>(index2,0);
-							color[1] = preprocessing_data.raw_data_3D_array[index1].at<float>(index2,1);
-							color[2] = preprocessing_data.raw_data_3D_array[index1].at<float>(index2,2);
-
-							DrawRectWithOpenGL(rect,color);
-							delete(rect);
-
-							y_position[dim]+=35;
-						}					
-					}
-					/*
-					//x_position = 750;
-					//y_position = 150;
-					for(int i=0;i<raw_data_index_2D.size();i++)
-					{				
-						RECTANGLE *rect;
-						int index1 = raw_data_index_2D[i][0];
-						int index2 = raw_data_index_2D[i][1];
-						int count = 0;
-						int month,day;
-						for(int i=0;i<preprocessing_data.month_vec.size();i++)
-						{
-							for(int j=0;j<preprocessing_data.month_vec[i].day_vec.size();j++)
-							{
-								if(count==index1)
-								{
-									month = i;
-									day = j;
-									break;
-								}
-								count++;
-							}
-							if(count==index1) break;
-						}
-						//DrawText_FTGL(preprocessing_data.month_vec[index1].this_year, x_position-150, y_position + 10, r, g, b);
-						//DrawText_FTGL(preprocessing_data.month_vec[index1].this_month, x_position-100, y_position + 10, r, g, b);
-						//DrawText_FTGL(index2+1, x_position-70, y_position + 10, r, g, b);
-						float value = 0.001*abs(preprocessing_data.month_vec[month].day_vec[day].hour_vec[index2].data[1]);
-						DrawText_FTGL(preprocessing_data.month_vec[month].day_vec[day].hour_vec[index2].data[1], x_position[1] + value + 10, y_position[1] + 10, 1.0, 1.0, 1.0);
-						
-						rect = new RECTANGLE();
-						rect->h = 30.0;
-						rect->w = value;
-						rect->x = x_position[1];
-						rect->y = y_position[1];
-						color[0] = preprocessing_data.raw_data_3D_array[index1].at<float>(index2,0);
-						color[1] = preprocessing_data.raw_data_3D_array[index1].at<float>(index2,1);
-						color[2] = preprocessing_data.raw_data_3D_array[index1].at<float>(index2,2);
-
-						DrawRectWithOpenGL(rect,color);
-						delete(rect);
-
-						y_position[1]+=35;
-					}	
-					*/
-					
+					y_position+=80;
+				}
 			}
 			
 			SwapOpenGLBuffers();

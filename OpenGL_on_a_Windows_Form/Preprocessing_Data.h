@@ -70,6 +70,10 @@ private:
 	void voting_for_data(int,int,Mat);
 	int count_digit(float);
 
+	void TSP_boost_for_histogram_coarse_to_fine_multi(Mat, Mat, Mat&);
+	void TSP_for_index(Mat&, Mat& ,Mat&);
+	Mat Ev_global;
+
 public:
 	Preprocessing_Data();
 	void start2(vector<month>,vector<holiday>,int);
@@ -104,6 +108,7 @@ public:
 	int data_dim;
 	bool data_dim_flag[6];
 	Mat* find_month_and_day;
+	vector< vector<float> > data_color;
 };
 
 

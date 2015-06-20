@@ -62,7 +62,7 @@ namespace OpenGLForm{
 	{
 		glPushMatrix();
 
-		float font_size = 20*(scale_factor[0]+0.5+scale_x[0]);
+		float font_size = 20*(scale_x[0]);
 		font.FaceSize(font_size);
 		glColor3f(1.0, 1.0, 1.0);
 		glRasterPos2f(x , y-30.0 + font.LineHeight());
@@ -77,10 +77,12 @@ namespace OpenGLForm{
 		glPushMatrix();
 
 		glTranslatef(x, y-30, 0);
-		glScalef(1.0+scale_x[0],1.0+scale_y[0],1.0+scale_z[0]);	
-	
-		//float font_size = 10*(scale_factor[2]+0.4+scale_x[2]);	
-		font.FaceSize(20);
+		//glScalef(1.0+scale_x[0],1.0+scale_y[0],1.0+scale_z[0]);	
+		glScalef(1.0,1.0+scale_y[0],1.0+scale_z[0]);	
+
+		float font_size = 10*(scale_y[0]+1.5);	
+		font.FaceSize(font_size);
+		//font.FaceSize(20);
 		glColor3f(1.0, 1.0, 1.0);
 		glRasterPos2f(0 , 0 + font.LineHeight());
 		stringstream ss;
@@ -135,13 +137,41 @@ namespace OpenGLForm{
 			glLoadIdentity();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Clear the screen and depth buffer
 
+			glPushMatrix();
+			
+			glTranslatef(0.0,0.0+move_y[0],0.0+move_z[0]);
+			glScalef(scale_factor[0]+scale_x[0],scale_factor[0]+scale_y[0],scale_factor[0]+scale_z[0]);
+			draw_color[0] = 0.3; 
+			draw_color[1] = 0.3; 
+			draw_color[2] = 0.3;
+			RECTANGLE *block;
+			block = new RECTANGLE();
+			block->h = 2500;
+			block->w = 40;
+			block->x = 0;
+			block->y = -200;
+			DrawRectWithOpenGL(block,draw_color);
+			delete(block);
+			
+			int y_coord = 1280;
+			for(int i=0;i<preprocessing_data.month_vec.size();i++)
+			{
+				
+				int current_month = preprocessing_data.month_vec[i].this_month;
+				int day = preprocessing_data.month_vec[i].day_vec.size();
+				DrawText_FTGL(current_month,20,y_coord);
+				y_coord -= 6.5*day;
+			}
+
+			glPopMatrix();
+			
 			glTranslatef(0.0+move_x[0],0.0+move_y[0],0.0+move_z[0]);
 			glScalef(scale_factor[0]+scale_x[0],scale_factor[0]+scale_y[0],scale_factor[0]+scale_z[0]);
 
 
 			if(!preprocessing_data.histogram.empty())
 			{
-				int y_coord = 1000;
+				int y_coord = 1300;
 				int pixels;
 				int current_hour;
 				int last_hour = -1;
@@ -154,7 +184,7 @@ namespace OpenGLForm{
 					{
 						float end_position;
 						current_hour = preprocessing_data.month_vec[i].this_month;
-						//current_hour = preprocessing_data.month_vec[i].this_year;
+
 						if(current_hour!=last_hour)
 						{
 							draw_color[0] = 1; 
@@ -163,12 +193,11 @@ namespace OpenGLForm{
 							RECTANGLE *line;
 							line = new RECTANGLE();
 							line->h = 3;
-							line->w = 900;
-							line->x = 0;
+							line->w = 1800;
+							line->x = -400;
 							line->y = y_coord - 4;
 							DrawRectWithOpenGL(line,draw_color);
-							DrawText_FTGL(current_hour,20,y_coord-10);
-							//DrawTime_FTGL(current_hour,20,y_coord-10);
+							//DrawText_FTGL(current_hour,20,y_coord-10);
 							t++;
 							y_coord-=10;
 							delete(line);

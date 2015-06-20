@@ -43,7 +43,7 @@ namespace OpenGL_on_a_Windows_Form
 
 			histogram = gcnew HistogramVisualization(this,this->panel3,panel3->Width,panel3->Height,read_csv,preprocessing_data);
 			rawData = gcnew RawDataVisualization(this,this->panel1,panel1->Width,panel1->Height,read_csv,preprocessing_data);
-			//detail = gcnew DetailVisualization(this,this->panel2,panel2->Width,panel2->Height,read_csv,preprocessing_data);
+			detail = gcnew DetailVisualization(this,this->panel2,panel2->Width,panel2->Height,read_csv,preprocessing_data);
 
 		}
 	protected:
@@ -78,7 +78,7 @@ namespace OpenGL_on_a_Windows_Form
 	private: System::Boolean Move_12_horiz_flag,Down_12_horiz_flag;
 	private: System::Boolean Move_12_vert_flag,Down_12_vert_flag;
 	private: System::Int32 last_x,last_y;
-	private: System::Windows::Forms::Button^  Detail_Clear;
+
 	private: System::Windows::Forms::TextBox^  textBox1;
 	private: System::Boolean waiting_flag;
 	private: System::Windows::Forms::CheckBox^  residential_in;
@@ -89,7 +89,7 @@ namespace OpenGL_on_a_Windows_Form
 	private: System::Windows::Forms::CheckBox^  work_school_out;
 	private: System::Windows::Forms::Label^  cluster_label;
 	private: System::Boolean start_flag;
-	private: System::Windows::Forms::ProgressBar^  progressBar1;
+
 	private: System::Windows::Forms::Button^  load_csv;
 	private: System::Windows::Forms::Label^  file_directory;
 	private: System::ComponentModel::BackgroundWorker^  backgroundWorker1;
@@ -114,7 +114,6 @@ namespace OpenGL_on_a_Windows_Form
 			this->start = (gcnew System::Windows::Forms::Button());
 			this->button2 = (gcnew System::Windows::Forms::Button());
 			this->trackBar1 = (gcnew System::Windows::Forms::TrackBar());
-			this->Detail_Clear = (gcnew System::Windows::Forms::Button());
 			this->textBox1 = (gcnew System::Windows::Forms::TextBox());
 			this->feature_selection_label = (gcnew System::Windows::Forms::Label());
 			this->residential_in = (gcnew System::Windows::Forms::CheckBox());
@@ -124,7 +123,6 @@ namespace OpenGL_on_a_Windows_Form
 			this->tourism_in = (gcnew System::Windows::Forms::CheckBox());
 			this->tourism_out = (gcnew System::Windows::Forms::CheckBox());
 			this->cluster_label = (gcnew System::Windows::Forms::Label());
-			this->progressBar1 = (gcnew System::Windows::Forms::ProgressBar());
 			this->load_csv = (gcnew System::Windows::Forms::Button());
 			this->file_directory = (gcnew System::Windows::Forms::Label());
 			this->backgroundWorker1 = (gcnew System::ComponentModel::BackgroundWorker());
@@ -139,9 +137,9 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// panel1
 			// 
-			this->panel1->Location = System::Drawing::Point(671, 12);
+			this->panel1->Location = System::Drawing::Point(718, 12);
 			this->panel1->Name = L"panel1";
-			this->panel1->Size = System::Drawing::Size(888, 985);
+			this->panel1->Size = System::Drawing::Size(841, 1030);
 			this->panel1->TabIndex = 0;
 			this->panel1->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &Form1::panel1_Paint);
 			this->panel1->MouseEnter += gcnew System::EventHandler(this, &Form1::panel1_MouseEnter);
@@ -149,9 +147,9 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// panel2
 			// 
-			this->panel2->Location = System::Drawing::Point(671, 1003);
+			this->panel2->Location = System::Drawing::Point(1578, 585);
 			this->panel2->Name = L"panel2";
-			this->panel2->Size = System::Drawing::Size(888, 39);
+			this->panel2->Size = System::Drawing::Size(319, 393);
 			this->panel2->TabIndex = 1;
 			this->panel2->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &Form1::panel2_Paint);
 			this->panel2->MouseEnter += gcnew System::EventHandler(this, &Form1::panel2_MouseEnter);
@@ -161,7 +159,7 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			this->panel3->Location = System::Drawing::Point(12, 12);
 			this->panel3->Name = L"panel3";
-			this->panel3->Size = System::Drawing::Size(653, 1030);
+			this->panel3->Size = System::Drawing::Size(700, 1030);
 			this->panel3->TabIndex = 2;
 			this->panel3->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &Form1::panel3_Paint);
 			this->panel3->MouseEnter += gcnew System::EventHandler(this, &Form1::panel3_MouseEnter);
@@ -169,7 +167,7 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// start
 			// 
-			this->start->Location = System::Drawing::Point(1716, 428);
+			this->start->Location = System::Drawing::Point(1715, 413);
 			this->start->Name = L"start";
 			this->start->Size = System::Drawing::Size(134, 67);
 			this->start->TabIndex = 4;
@@ -190,31 +188,21 @@ namespace OpenGL_on_a_Windows_Form
 			// trackBar1
 			// 
 			this->trackBar1->LargeChange = 1;
-			this->trackBar1->Location = System::Drawing::Point(1682, 362);
+			this->trackBar1->Location = System::Drawing::Point(1682, 343);
 			this->trackBar1->Maximum = 50;
 			this->trackBar1->Name = L"trackBar1";
 			this->trackBar1->Size = System::Drawing::Size(196, 45);
 			this->trackBar1->TabIndex = 6;
-			this->trackBar1->Value = 7;
+			this->trackBar1->Value = 9;
 			this->trackBar1->Scroll += gcnew System::EventHandler(this, &Form1::trackBar1_Scroll);
-			// 
-			// Detail_Clear
-			// 
-			this->Detail_Clear->Location = System::Drawing::Point(1565, 317);
-			this->Detail_Clear->Name = L"Detail_Clear";
-			this->Detail_Clear->Size = System::Drawing::Size(63, 36);
-			this->Detail_Clear->TabIndex = 7;
-			this->Detail_Clear->Text = L"Clear";
-			this->Detail_Clear->UseVisualStyleBackColor = true;
-			this->Detail_Clear->Click += gcnew System::EventHandler(this, &Form1::Detail_Clear_Click);
 			// 
 			// textBox1
 			// 
-			this->textBox1->Location = System::Drawing::Point(1873, 362);
+			this->textBox1->Location = System::Drawing::Point(1873, 343);
 			this->textBox1->Name = L"textBox1";
 			this->textBox1->Size = System::Drawing::Size(24, 22);
 			this->textBox1->TabIndex = 8;
-			this->textBox1->Text = L"7";
+			this->textBox1->Text = L"9";
 			// 
 			// feature_selection_label
 			// 
@@ -280,6 +268,8 @@ namespace OpenGL_on_a_Windows_Form
 			// tourism_in
 			// 
 			this->tourism_in->AutoSize = true;
+			this->tourism_in->Checked = true;
+			this->tourism_in->CheckState = System::Windows::Forms::CheckState::Checked;
 			this->tourism_in->Location = System::Drawing::Point(1691, 218);
 			this->tourism_in->Name = L"tourism_in";
 			this->tourism_in->Size = System::Drawing::Size(84, 16);
@@ -291,6 +281,8 @@ namespace OpenGL_on_a_Windows_Form
 			// tourism_out
 			// 
 			this->tourism_out->AutoSize = true;
+			this->tourism_out->Checked = true;
+			this->tourism_out->CheckState = System::Windows::Forms::CheckState::Checked;
 			this->tourism_out->Location = System::Drawing::Point(1691, 256);
 			this->tourism_out->Name = L"tourism_out";
 			this->tourism_out->Size = System::Drawing::Size(91, 16);
@@ -302,24 +294,17 @@ namespace OpenGL_on_a_Windows_Form
 			// cluster_label
 			// 
 			this->cluster_label->AutoSize = true;
-			this->cluster_label->Location = System::Drawing::Point(1689, 337);
+			this->cluster_label->Location = System::Drawing::Point(1689, 313);
 			this->cluster_label->Name = L"cluster_label";
 			this->cluster_label->Size = System::Drawing::Size(129, 12);
 			this->cluster_label->TabIndex = 14;
 			this->cluster_label->Text = L"Cluster Number (k-means)";
 			// 
-			// progressBar1
-			// 
-			this->progressBar1->Location = System::Drawing::Point(1682, 527);
-			this->progressBar1->Name = L"progressBar1";
-			this->progressBar1->Size = System::Drawing::Size(196, 23);
-			this->progressBar1->TabIndex = 15;
-			// 
 			// load_csv
 			// 
-			this->load_csv->Location = System::Drawing::Point(1735, 613);
+			this->load_csv->Location = System::Drawing::Point(1732, 505);
 			this->load_csv->Name = L"load_csv";
-			this->load_csv->Size = System::Drawing::Size(115, 32);
+			this->load_csv->Size = System::Drawing::Size(102, 32);
 			this->load_csv->TabIndex = 16;
 			this->load_csv->Text = L"Load csv File";
 			this->load_csv->UseVisualStyleBackColor = true;
@@ -338,7 +323,6 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			this->backgroundWorker1->WorkerReportsProgress = true;
 			this->backgroundWorker1->DoWork += gcnew System::ComponentModel::DoWorkEventHandler(this, &Form1::backgroundWorker1_DoWork);
-			this->backgroundWorker1->ProgressChanged += gcnew System::ComponentModel::ProgressChangedEventHandler(this, &Form1::backgroundWorker1_ProgressChanged);
 			this->backgroundWorker1->RunWorkerCompleted += gcnew System::ComponentModel::RunWorkerCompletedEventHandler(this, &Form1::backgroundWorker1_RunWorkerCompleted);
 			// 
 			// Form1
@@ -350,7 +334,6 @@ namespace OpenGL_on_a_Windows_Form
 			this->Controls->Add(this->tourism_in);
 			this->Controls->Add(this->file_directory);
 			this->Controls->Add(this->load_csv);
-			this->Controls->Add(this->progressBar1);
 			this->Controls->Add(this->cluster_label);
 			this->Controls->Add(this->work_school_out);
 			this->Controls->Add(this->work_school_in);
@@ -358,7 +341,6 @@ namespace OpenGL_on_a_Windows_Form
 			this->Controls->Add(this->residential_out);
 			this->Controls->Add(this->residential_in);
 			this->Controls->Add(this->textBox1);
-			this->Controls->Add(this->Detail_Clear);
 			this->Controls->Add(this->trackBar1);
 			this->Controls->Add(this->button2);
 			this->Controls->Add(this->start);
@@ -674,9 +656,6 @@ namespace OpenGL_on_a_Windows_Form
 				//										  this->tourism_out->Checked);
 			 }
 
-	private: System::Void backgroundWorker1_ProgressChanged(System::Object^  sender, System::ComponentModel::ProgressChangedEventArgs^  e) {
-				 progressBar1->Value = e->ProgressPercentage;
-			 }
 
 	private: System::Void backgroundWorker1_RunWorkerCompleted(System::Object^  sender, System::ComponentModel::RunWorkerCompletedEventArgs^  e) {
 				 //System::Windows::Forms::MessageBox::Show("Processing was completed");

@@ -15,7 +15,7 @@ void ReadCSV::read_file_all()
 	hour_amount = 0;
 	day_amount = 0;
 	int month_day[] = {31,28,31,30,31,30,31,31,30,31,30,31};
-	month_vec.resize(5);//////////////////////////////
+	month_vec.resize(7);//////////////////////////////
 	for(int i=0;i<month_vec.size();i++)
 	{
 		month_vec[i].day_vec.resize(month_day[i]);
@@ -34,8 +34,9 @@ void ReadCSV::read_file_all()
 	read_single_file2("201103");
 	read_single_file2("201104");
 	read_single_file2("201105");
-	//read_single_file2("201106");
-	//read_single_file2("201107");	
+	read_single_file2("201106");
+	read_single_file2("201107");	
+	//read_single_file2("201108");	
 }
 
 void ReadCSV::read_single_file2(char* file_name)
