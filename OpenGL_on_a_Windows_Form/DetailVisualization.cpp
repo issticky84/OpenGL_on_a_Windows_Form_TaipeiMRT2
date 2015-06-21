@@ -39,7 +39,7 @@ namespace OpenGLForm{
 			int x_position = 50;
 			int y_position = 50;
 			int t = 0;
-			for(int i=5;i>=0;i--)
+			for(int i=0;i<6;i++)
 			{
 				if(preprocessing_data.data_dim_flag[i])
 				{

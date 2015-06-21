@@ -13,6 +13,7 @@
 
 #include "month.h"
 #include "holiday.h"
+#include "group.h"
 
 #define LENGTH 1000
 
@@ -59,20 +60,27 @@ private:
 	Mat MDS(Mat,int); 
 	void distance_by_GMM(Mat&,Mat&,Mat,int);
 
+
 	double TSP_boost_by_EdgeWeight(Mat, Mat&);
 	double TSP_boost_by_EdgeWeight(Mat, Mat&, int, int);
 	double TSP_boost_path_by_EdgeWeight(Mat, Mat&);
 	double compute_dist(Mat,Mat,int);
 	void sort_pattern_by_color_by_TSP_coarse_to_fine(Mat, Mat&);
+	void sort_pattern_by_color_by_TSP_coarse_to_fine2(Mat, Mat&);
 	void rearrange_mat_by_sort_color_index(Mat, Mat&, Mat&, Mat&);
 	void sort_histogram_by_Ev_by_TSP_coarse_to_fine(Mat, Mat&);
+	void sort_histogram_by_Ev_by_TSP_coarse_to_fine2(Mat, Mat&);
 	void Position_by_histogram_sort_index(Mat&, Mat);
 	void voting_for_data(int,int,Mat);
 	int count_digit(float);
 
-	void TSP_boost_for_histogram_coarse_to_fine_multi(Mat, Mat, Mat&);
+	double TSP_boost_by_EdgeWeight_with_original(Mat, Mat&, int, int, vector<int>);
+	double TSP_boost_by_EdgeWeight_with_original(Mat, Mat&, vector<int>);
+	void TSP_boost_for_histogram_coarse_to_fine_multi(Mat, Mat, int);
 	void TSP_for_index(Mat&, Mat& ,Mat&);
 	Mat Ev_global;
+	void TSP_group_connect(vector<group>,Mat&);
+	vector<group> tree_group;
 
 public:
 	Preprocessing_Data();

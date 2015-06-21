@@ -197,7 +197,7 @@ namespace OpenGL_on_a_Windows_Form
 			this->trackBar1->Name = L"trackBar1";
 			this->trackBar1->Size = System::Drawing::Size(196, 45);
 			this->trackBar1->TabIndex = 6;
-			this->trackBar1->Value = 9;
+			this->trackBar1->Value = 5;
 			this->trackBar1->Scroll += gcnew System::EventHandler(this, &Form1::trackBar1_Scroll);
 			// 
 			// textBox1
@@ -206,7 +206,7 @@ namespace OpenGL_on_a_Windows_Form
 			this->textBox1->Name = L"textBox1";
 			this->textBox1->Size = System::Drawing::Size(24, 22);
 			this->textBox1->TabIndex = 8;
-			this->textBox1->Text = L"9";
+			this->textBox1->Text = L"5";
 			// 
 			// feature_selection_label
 			// 

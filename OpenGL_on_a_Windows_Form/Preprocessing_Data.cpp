@@ -214,7 +214,7 @@ void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read
 	//TSP_boost_for_lab_color(lab,lab_color_sort_index);
 	//TSP_boost_for_lab_color_coarse_to_fine(lab,lab_color_sort_index);
 	//TSP_boost_for_lab_color_coarse_to_fine3(lab,lab_color_sort_index);
-	//sort_pattern_by_color_by_TSP_coarse_to_fine(lab,lab_color_sort_index);
+	//sort_pattern_by_color_by_TSP_coarse_to_fine2(lab,lab_color_sort_index);
 	tsp_brute tsp;
 	tsp.tsp_path(lab,lab_color_sort_index);
 	output_mat_as_csv_file_int("lab_color_sort_index.csv",lab_color_sort_index);
@@ -242,19 +242,31 @@ void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read
 	Mat group_index = Mat::zeros(histogram.rows,1,CV_32S); 
 	for(int i=0;i<histogram.rows;i++)
 		group_index.at<int>(i,0) = i;
-	//TSP_boost_for_histogram_coarse_to_fine_multi(Ev_global, group_index, histo_sort_index);
+	TSP_boost_for_histogram_coarse_to_fine_multi(Ev_global, group_index, 5);
+	TSP_group_connect(tree_group, histo_sort_index);
+	tree_group.clear();
 	//sort_histogram_by_Ev_by_TSP_coarse_to_fine(cluster_centers,histo_sort_index);
+	//sort_histogram_by_Ev_by_TSP_coarse_to_fine2(cluster_centers,histo_sort_index);
 	output_mat_as_csv_file_int("histo_sort_index.csv",histo_sort_index);
+	ofstream ftree("histo_tree.txt");
+	for(int i=0;i<tree_group.size();i++)
+	{
+		for(int j=0;j<tree_group[i].index2.size();j++)
+		{
+			ftree << tree_group[i].index2[j] << " ";
+		}
+		ftree << endl;
+	}
+	ftree.close();
 	
-	//==============MDS=====================//
-	position = Position_by_MDS(cluster_centers,k,1.0).clone(); //Type:double
+	//==============MDS by GMM=====================//
+	//position = Position_by_MDS(cluster_centers,k,1.0).clone(); //Type:double
 
-	//
-	/*
+	//=============Compute Neighbor Distance===============//
 	Mat histo_position = Mat::zeros(histogram.rows,1,CV_64F);
 	Position_by_histogram_sort_index(histo_position,histo_sort_index);
 	position = histo_position.clone();
-	*/
+	
 	output_mat_as_csv_file_double("position.csv",position);
 	//======================raw data 3D color by lab alignment===================//
 	
@@ -2338,6 +2350,188 @@ double Preprocessing_Data::compute_dist(Mat m1,Mat m2,int dim)
 	return dist;
 }
 
+void Preprocessing_Data::sort_pattern_by_color_by_TSP_coarse_to_fine2(Mat lab_data, Mat& lab_color_sort_index)
+{
+	int k = lab_data.rows;//k是4的倍數
+	int dim = lab_data.rows;
+	int group_num = 4;
+	Mat cluster_tag = Mat::zeros(k,1,CV_32S);
+	Mat cluster_centers = Mat::zeros(group_num,dim,CV_32F);
+	cuda_kmeans(lab_data, group_num, cluster_tag, cluster_centers);
+	//kmeans(lab_data, group_num, cluster_tag, TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 100, 0.0001), 2, KMEANS_PP_CENTERS,cluster_centers);
+	class group{
+	public:
+		vector<int> index;
+		vector<int> index2;
+		vector<int> sort_index;
+		vector<int> adj_index;
+	};
+	vector<group> groups(group_num);
+
+	for(int i=0;i<k;i++)
+	{
+		int tag = cluster_tag.at<int>(i,0);
+		groups[tag].index.push_back(i);
+	}
+
+	///////////////////////////////
+	ofstream fout("color_test.txt"); 
+
+	cout << "index :" << endl;
+	fout << "index :" << endl;
+ 	for(int i=0;i<group_num;i++)
+	{
+		for(int j=0;j<groups[i].index.size();j++)
+		{
+			cout << groups[i].index[j] << " ";
+			fout << groups[i].index[j] << " ";
+		}
+		cout << endl;
+		fout << endl;
+	}
+
+
+	Mat group_sort_index = Mat::zeros(group_num,1,CV_32S);
+	//TSP_boost_path_by_EdgeWeight(cluster_centers, color_sort_index);
+	//TSP_boost_by_EdgeWeight(cluster_centers, color_sort_index);
+	tsp_brute tsp;
+	tsp.tsp_path(cluster_centers,group_sort_index);	
+
+
+	for(int i=0;i<group_num;i++)
+	{
+		int index = group_sort_index.at<int>(i,0);
+		for(int j=0;j<groups[index].index.size();j++)
+		{
+			groups[i].index2.push_back( groups[index].index[j] );
+		}
+	}
+
+	cout << "index2 :" << endl;
+	fout << "index2 :" << endl;
+ 	for(int i=0;i<group_num;i++)
+	{
+		for(int j=0;j<groups[i].index2.size();j++)
+		{
+			cout << groups[i].index2[j] << " ";
+			fout << groups[i].index2[j] << " ";
+		}
+		cout << endl;
+		fout << endl;
+	}
+
+
+	////////////////////////////////////////////////////////////////////////////////////
+	int min_target = groups[0].index2[0];
+	cout << "min_target " << min_target << endl;
+	vector<int> temp = groups[0].index2;
+	groups[0].index2.clear();
+	for(int i=0;i<temp.size();i++)
+	{
+		if(temp[i]!=min_target)
+		{
+			groups[0].index2.push_back( temp[i] );
+		}
+	}
+
+	for(int s=0;s<group_num-1;s++)
+	{
+		int size = 1 + groups[s].index2.size() + 1;
+		Mat lab_sub = Mat::zeros(size,lab_data.cols,CV_32F);
+		Mat lab_color_sort_index_sub = Mat::zeros(size,1,CV_32S);
+		Mat optimal_sort_index;
+
+		int t = 0;
+		lab_data.row(min_target).copyTo( lab_sub.row(t++) );
+		for(int i=0;i<groups[s].index2.size();i++)
+		{
+			int index = groups[s].index2[i];
+			lab_data.row(index).copyTo( lab_sub.row(t++) );
+		}
+
+		double min_len = 10000;
+		double min_idx;
+		for(int j=0;j<groups[s+1].index2.size();j++)
+		{
+			int next_start_index = groups[s+1].index2[j];
+			lab_data.row(next_start_index).copyTo( lab_sub.row(t) );	
+			vector<int> original_index;
+			original_index.push_back(min_target);
+			for(int u=0;u<groups[s].index2.size();u++)	original_index.push_back(groups[s].index2[u]);
+			original_index.push_back( next_start_index );
+			//cout << "original_index: ";
+			//for(int u=0;u<original_index.size();u++) cout << original_index[u] << " ";
+
+			//double len = TSP_boost_path_by_EdgeWeight_with_original(lab_sub, lab_color_sort_index_sub, original_index);
+			//double len = TSP_boost_by_EdgeWeight_with_original(lab_sub, lab_color_sort_index_sub, original_index);
+			double len = TSP_boost_by_EdgeWeight_with_original(lab_sub, lab_color_sort_index_sub, 0, size-1, original_index);
+			cout << "lab_color_sort_index_sub " << lab_color_sort_index_sub << endl;
+			if(len < min_len && lab_color_sort_index_sub.at<int>(size-1,0)==next_start_index) 
+			{
+				min_len = len;
+				min_idx = next_start_index;
+				optimal_sort_index = lab_color_sort_index_sub.clone();
+			}
+
+			original_index.clear();
+		}
+	
+		min_target = min_idx;
+	
+		for(int i=0;i<optimal_sort_index.rows;i++)
+		{
+			if(optimal_sort_index.at<int>(i,0) != min_target)
+				groups[s].sort_index.push_back( optimal_sort_index.at<int>(i,0) );
+		}
+
+		cout << "min_target " << min_target << endl;
+		vector<int> temp = groups[s+1].index2;
+		groups[s+1].index2.clear();
+		for(int i=0;i<temp.size();i++)
+		{
+			if(temp[i]!=min_target)
+			{
+				groups[s+1].index2.push_back( temp[i] );
+			}
+		}
+	}
+
+
+	Mat lab_sub = Mat::zeros(1 + groups[group_num-1].index2.size(),lab_data.cols,CV_32F);
+	Mat lab_color_sort_index_sub = Mat::zeros(1 + groups[group_num-1].index2.size(),1,CV_32S);
+	int t = 0;
+	vector<int> original_index;
+	lab_data.row(min_target).copyTo( lab_sub.row(t++) );
+	original_index.push_back(min_target);
+	for(int i=0;i<groups[group_num-1].index2.size();i++)
+	{
+		lab_data.row( groups[group_num-1].index2[i] ).copyTo( lab_sub.row(t++) );	
+		original_index.push_back( groups[group_num-1].index2[i] );
+	}
+	TSP_boost_by_EdgeWeight_with_original(lab_sub, lab_color_sort_index_sub, original_index);
+	cout << "index " << lab_color_sort_index_sub << endl;
+	for(int i=0;i<lab_color_sort_index_sub.rows;i++)
+	{
+		groups[group_num-1].sort_index.push_back( lab_color_sort_index_sub.at<int>(i,0) ); 
+	}
+
+	fout << "sort_index: " << endl;
+	t = 0;
+	for(int i=0;i<group_num;i++)
+	{
+		for(int j=0;j<groups[i].sort_index.size();j++)
+		{
+			cout << groups[i].sort_index[j] << " ";
+			fout << groups[i].sort_index[j] << " ";
+			lab_color_sort_index.at<int>(t++,0) = groups[i].sort_index[j];
+		}
+		cout << endl;
+		fout << endl;
+	}
+
+	fout.close();	
+}
+
 void Preprocessing_Data::sort_pattern_by_color_by_TSP_coarse_to_fine(Mat lab_data, Mat& lab_color_sort_index)
 {
 	int k = lab_data.rows;//k是4的倍數
@@ -2777,6 +2971,388 @@ double Preprocessing_Data::TSP_boost_by_EdgeWeight(Mat input_mat, Mat& sort_inde
 	return len;
 }
 
+double Preprocessing_Data::TSP_boost_by_EdgeWeight_with_original(Mat input_mat, Mat& sort_index, int start_index, int end_index, vector<int> original_index)
+{
+	int row = input_mat.rows;
+
+	typedef vector<simple_point<double> > PositionVec;
+	typedef adjacency_matrix<undirectedS, no_property,
+	property <edge_weight_t, double> > Graph;
+	typedef graph_traits<Graph>::vertex_descriptor Vertex;
+	typedef graph_traits<Graph>::edge_descriptor edge_descriptor;
+	typedef vector<Vertex> Container;
+	typedef property_map<Graph, edge_weight_t>::type WeightMap;
+	typedef property_map<Graph, vertex_index_t>::type VertexMap;
+
+	/*	
+	PositionVec position_vec;
+	for(int i=0;i<row;i++)
+	{
+		simple_point<double> vertex;
+		vertex.x = input_mat.at<float>(i,0);
+		vertex.y = input_mat.at<float>(i,1);
+		position_vec.push_back(vertex);
+	}	
+	*/	
+
+    int num_nodes = row + 1; //dummy node
+    int num_arcs = num_nodes * (num_nodes-1) / 2;
+	//int num_arcs = num_nodes * (num_nodes-1) / 2 - (num_nodes-1-2);
+	typedef std::pair<int, int> Edge;
+	//Edge edge_array[] = { Edge(A, C), Edge(B, B), Edge(B, D), Edge(B, E),Edge(C, B), Edge(C, D), Edge(D, E), Edge(E, A), Edge(E, B) };
+	//int weights[] = { 1, 2, 1, 2, 7, 3, 1, 1, 1 };
+	Edge* edge_array = new Edge[num_arcs];
+	float* weights = new float[num_arcs];
+	//float check_weight[50][50];
+	int t = 0;
+
+	Mat input_mat_add_dim = Mat::zeros(num_nodes,input_mat.cols+1,CV_32F);
+	for(int i=0;i<num_nodes;i++)
+	{
+		if(i==num_nodes-1) //dummy_node
+		{
+			for(int j=0;j<input_mat.cols;j++)
+			{
+				input_mat_add_dim.at<float>(i,j) = ( input_mat.at<float>(start_index,j) + input_mat.at<float>(end_index,j) ) / 2.0;
+			}
+		    input_mat_add_dim.at<float>(i,input_mat.cols) = 1000.0;
+		}
+		else
+		{
+			for(int j=0;j<input_mat.cols;j++)
+			{
+				input_mat_add_dim.at<float>(i,j) = input_mat.at<float>(i,j);
+			}
+			//if(i==start_index || i==end_index)
+			//{
+			//	input_mat_add_dim.at<float>(i,input_mat.cols) = 499.0;
+			//}
+			if(i==start_index)
+			{
+				input_mat_add_dim.at<float>(i,input_mat.cols) = 999.9;
+			}
+			else if(i==end_index)
+			{
+				input_mat_add_dim.at<float>(i,input_mat.cols) = 999.9;
+			}
+			else
+			{
+				input_mat_add_dim.at<float>(i,input_mat.cols) = 0.0;
+			}
+		}
+	}
+
+	//把dummy node擺在第一個
+	//其他node往前平移一格(index+1)
+	Mat input_mat_add_dim_rearrange = Mat::zeros(num_nodes,input_mat.cols+1,CV_32F);
+	input_mat_add_dim.row(num_nodes-1).copyTo( input_mat_add_dim_rearrange.row(0) );
+	for(int i=0;i<num_nodes-1;i++)
+	{
+		input_mat_add_dim.row(i).copyTo( input_mat_add_dim_rearrange.row(i+1) );
+	}
+
+	//output_mat_as_csv_file("input_mat_add_dim.csv",input_mat_add_dim);
+	//output_mat_as_csv_file("input_mat_add_dim_rearrange.csv",input_mat_add_dim_rearrange);
+
+	for(int i=0;i<num_nodes;i++)
+	{
+		for(int j=0;j<num_nodes;j++)
+		{
+			if(i==j) 
+				continue;
+			else if(i>j) 
+				continue;
+			else
+			{	
+				weights[t] = 0.0;
+				for(int u=0;u<input_mat_add_dim_rearrange.cols;u++)
+				{
+					weights[t] += abs( input_mat_add_dim_rearrange.at<float>(i,u) - input_mat_add_dim_rearrange.at<float>(j,u) ); 
+				}
+
+				edge_array[t] = Edge(i,j);
+				t++;
+			}
+		}
+	}
+
+
+	/*
+	Graph g(edge_array, edge_array + num_arcs, weights, num_nodes);
+	WeightMap weight_map(get(edge_weight, g));
+	VertexMap v_map = get(vertex_index, g);
+	*/
+	Graph g(num_nodes);
+	WeightMap weight_map(get(edge_weight, g));
+	VertexMap v_map = get(vertex_index, g);
+	for (size_t j = 0; j < num_arcs; ++j) {
+		edge_descriptor e; 
+		bool inserted;
+		boost::tie(e, inserted) = add_edge(edge_array[j].first, edge_array[j].second, g);
+		weight_map[e] = weights[j];
+		//cout << "weight[(" << edge_array[j].first << "," << edge_array[j].second << ")] = " << get(weight_map, e) << endl;
+	}
+
+	//boost::graph_traits<Graph>::vertex_descriptor u, v;
+	//u = vertex(0, g);
+ //   v = vertex(1, g);
+ //   boost::graph_traits<Graph>::edge_descriptor e1, e2;
+ //   bool found;
+ //   boost::tie(e1, found) = edge(u, v, g);
+ //   boost::tie(e2, found) = edge(v, u, g);
+ //   cout << "weight[(u,v)] = " << get(weight_map, e1) << endl;
+ //   cout << "weight[(v,u)] = " << get(weight_map, e2) << endl;
+
+	Container c;
+	//connectAllEuclidean(g, position_vec, weight_map, v_map);
+
+	metric_tsp_approx_tour(g, back_inserter(c));
+
+	//cout << "Number of points: " << num_vertices(g) << endl;
+	//cout << "Number of edges: " << num_edges(g) << endl;
+
+	cout << "start " << start_index << " " << " end " << end_index << endl;
+	//cout << "num nodes " << num_nodes << endl;
+	//print
+	for (vector<Vertex>::iterator itr = c.begin(); itr != c.end(); ++itr)
+	{
+		cout << *itr << " ";
+		//if(*itr==0) 
+		//	cout << num_nodes - 1 << " ";
+		//else
+		//	cout << *itr - 1 << " ";;
+	}
+
+	//system("pause");
+	//save
+	int i = 0;
+	for (vector<Vertex>::iterator itr = c.begin(); itr != c.end(); ++itr)
+	{
+		if(*itr==0) //dummy node
+			;//sort_index.at<int>(i,0) = num_nodes - 1;
+		else
+		{
+			sort_index.at<int>(i,0) = *itr - 1;
+			i++;
+		}
+		if(i==num_nodes) break;
+	}
+	//cout << endl;
+	//cout << "sort_index " << sort_index << endl;
+
+	vector<int> sort_index_triple;
+	for(int i=0;i<3;i++)
+	{
+		for(int j=0;j<sort_index.rows;j++)
+		{
+			sort_index_triple.push_back( sort_index.at<int>(j,0) );
+		}
+	}
+
+	//int second_start_index = num_nodes-1;
+	int second_start_index;
+	int start_index_count = 0;
+	for(int i=0;i<sort_index_triple.size();i++)
+	{
+		if(sort_index_triple[i]==start_index)
+		{
+			start_index_count++;
+			if(start_index_count==2)
+			{
+				second_start_index = i;
+				break;
+			}
+		}
+	}
+	
+	t = 0;
+	sort_index.at<int>(t++,0) = sort_index_triple[second_start_index];
+	//cout << "sort_index_triple[second_start_index] " << sort_index_triple[second_start_index] << endl;
+	//cout << "sort_index_triple[second_start_index+1] " << sort_index_triple[second_start_index+1] << endl;
+	//cout << "sort_index_triple[second_start_index-1] " << sort_index_triple[second_start_index-1] << endl;
+	if(sort_index_triple[second_start_index+1] == end_index)
+	{
+		int current = second_start_index-1;
+		while(sort_index_triple[current] != start_index)
+		{
+			sort_index.at<int>(t++,0) = sort_index_triple[current];
+			current--;
+		}
+	}
+	else if(sort_index_triple[second_start_index-1] == end_index)
+	{
+		int current = second_start_index+1;
+		while(sort_index_triple[current] != start_index)
+		{
+			sort_index.at<int>(t++,0) = sort_index_triple[current];
+			current++;
+		}	
+	}
+
+	Mat temp = sort_index.clone();
+	for(int i=0;i<temp.rows;i++)
+	{
+		int sort_idx = temp.at<int>(i,0);
+		int original_idx = original_index[ sort_idx ];
+		sort_index.at<int>(i,0) = original_idx;
+	}
+
+	sort_index_triple.clear();
+
+	c.clear();
+
+	//checkAdjList(position_vec);
+
+	//metric_tsp_approx_from_vertex(g, *vertices(g).first,
+	//	get(edge_weight, g), get(vertex_index, g),
+	//	tsp_tour_visitor<back_insert_iterator<vector<Vertex> > >
+	//	(back_inserter(c)));
+
+	//for (vector<Vertex>::iterator itr = c.begin(); itr != c.end(); ++itr)
+	//{
+	//	cout << *itr << " ";
+	//}
+	//cout << endl << endl;
+
+	//c.clear();
+   
+	double len(0.0);
+	try {
+		metric_tsp_approx(g, make_tsp_tour_len_visitor(g, back_inserter(c), len, weight_map));
+	}
+	catch (const bad_graph& e) {
+		cerr << "bad_graph: " << e.what() << endl;
+		//return;
+	}
+
+	//for (vector<Vertex>::iterator itr = c.begin(); itr != c.end(); ++itr)
+	//{
+	//	cout << *itr << " ";
+	//}
+	//cout << "Number of points: " << num_vertices(g) << endl;
+	//cout << "Number of edges: " << num_edges(g) << endl;
+	//cout << "Length of Tour: " << len << endl;
+
+	return len;
+}
+
+double Preprocessing_Data::TSP_boost_by_EdgeWeight_with_original(Mat input_mat, Mat& sort_index, vector<int> original_index)
+{
+	int row = input_mat.rows;
+
+	typedef vector<simple_point<double> > PositionVec;
+	typedef adjacency_matrix<undirectedS, no_property,
+	property <edge_weight_t, double> > Graph;
+	typedef graph_traits<Graph>::vertex_descriptor Vertex;
+	typedef graph_traits<Graph>::edge_descriptor edge_descriptor;
+	typedef vector<Vertex> Container;
+	typedef property_map<Graph, edge_weight_t>::type WeightMap;
+	typedef property_map<Graph, vertex_index_t>::type VertexMap;
+
+
+    int num_nodes = row;
+    int num_arcs = row * (row-1) / 2;
+	typedef std::pair<int, int> Edge;
+	//Edge edge_array[] = { Edge(A, C), Edge(B, B), Edge(B, D), Edge(B, E),Edge(C, B), Edge(C, D), Edge(D, E), Edge(E, A), Edge(E, B) };
+	//int weights[] = { 1, 2, 1, 2, 7, 3, 1, 1, 1 };
+	Edge* edge_array = new Edge[num_arcs];
+	float* weights = new float[num_arcs];
+	int t = 0;
+	for(int i=0;i<row;i++)
+	{
+		for(int j=0;j<row;j++)
+		{
+			if(i==j) 
+				continue;
+			else if(i>j) 
+				continue;
+			else
+			{
+				edge_array[t] = Edge(i,j);
+				weights[t] = 0.0;
+				for(int u=0;u<input_mat.cols;u++)
+				{
+					weights[t] += abs( input_mat.at<float>(i,u) - input_mat.at<float>(j,u) ); 
+				}
+				t++;
+			}
+		}
+	}
+
+	Graph g(num_nodes);
+	WeightMap weight_map(get(edge_weight, g));
+	VertexMap v_map = get(vertex_index, g);
+	edge_descriptor e; 
+	for (size_t j = 0; j < num_arcs; ++j) {
+		bool inserted;
+		boost::tie(e, inserted) = add_edge(edge_array[j].first, edge_array[j].second, g);
+		weight_map[e] = weights[j];
+		//cout << "weight[(" << edge_array[j].first << "," << edge_array[j].second << ")] = " << get(weight_map, e) << endl;
+		//if(edge_array[j].second == num_nodes-1) cout << endl;
+	}
+
+
+	//Graph g(edge_array, edge_array + num_arcs, weights, num_nodes);
+
+	Container c;
+
+	//connectAllEuclidean(g, position_vec, weight_map, v_map);
+
+	metric_tsp_approx_tour(g, back_inserter(c));
+
+	int i = 0;
+	for (vector<Vertex>::iterator itr = c.begin(); itr != c.end(); ++itr)
+	{
+		//cout << *itr << " ";
+		sort_index.at<int>(i,0) = *itr;
+		i++;
+		if(i==row) break;
+	}
+
+	//cout << "i " << i << endl;
+	//cout << endl << endl;
+	Mat temp = sort_index.clone();
+	for(int i=0;i<sort_index.rows;i++)
+	{
+		int sort_idx = temp.at<int>(i,0);
+		int original_idx = original_index[ sort_idx ];
+		sort_index.at<int>(i,0) = original_idx;
+	}
+
+
+	c.clear();
+
+	//checkAdjList(position_vec);
+
+	//metric_tsp_approx_from_vertex(g, *vertices(g).first,
+	//	get(edge_weight, g), get(vertex_index, g),
+	//	tsp_tour_visitor<back_insert_iterator<vector<Vertex> > >
+	//	(back_inserter(c)));
+
+	//for (vector<Vertex>::iterator itr = c.begin(); itr != c.end(); ++itr)
+	//{
+	//	cout << *itr << " ";
+	//}
+	//cout << endl << endl;
+
+	//c.clear();
+   
+	double len(0.0);
+	try {
+		metric_tsp_approx(g, make_tsp_tour_len_visitor(g, back_inserter(c), len, weight_map));
+	}
+	catch (const bad_graph& e) {
+		cerr << "bad_graph: " << e.what() << endl;
+		//return;
+	}
+
+	//cout << "Number of points: " << num_vertices(g) << endl;
+	//cout << "Number of edges: " << num_edges(g) << endl;
+	//cout << "Length of Tour: " << len << endl;
+
+	return len;
+}
+
 
 double Preprocessing_Data::TSP_boost_by_EdgeWeight(Mat input_mat, Mat& sort_index, int start_index, int end_index)
 {
@@ -3073,12 +3649,13 @@ void Preprocessing_Data::TSP_for_index(Mat& Ev_sub, Mat& histo_sort_index_sub, M
 }
 
 
-void Preprocessing_Data::TSP_boost_for_histogram_coarse_to_fine_multi(Mat Ev, Mat group_index, Mat& histo_sort_index)
+void Preprocessing_Data::TSP_boost_for_histogram_coarse_to_fine_multi(Mat Ev, Mat group_index,int level)
 {
 	int five_minutes = Ev.rows; 
 	int dim = Ev.cols;
 		
 	int group_num = 6;
+
 	Mat cluster_tag = Mat::zeros(five_minutes,1,CV_32S);
 	Mat group_cluster_centers = Mat::zeros(group_num,dim,CV_32F);
 	kmeans(Ev, group_num, cluster_tag, TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 100, 0.0001), 2,KMEANS_PP_CENTERS,group_cluster_centers);
@@ -3092,17 +3669,6 @@ void Preprocessing_Data::TSP_boost_for_histogram_coarse_to_fine_multi(Mat Ev, Ma
 		int tag = cluster_tag.at<int>(i,0);
 		groups_index[tag].push_back(index);
 	}
-
-	cout << "index :" << endl;
-	for(int i=0;i<group_num;i++)
-	{
-		for(int j=0;j<groups_index[i].rows;j++)
-		{
-			cout << groups_index[i].at<int>(j,0) << " ";
-		}
-		cout << endl;
-	}
-
 	
 	Mat group_sort_index = Mat::zeros(group_num,1,CV_32S);
 	tsp_brute tsp;
@@ -3113,20 +3679,10 @@ void Preprocessing_Data::TSP_boost_for_histogram_coarse_to_fine_multi(Mat Ev, Ma
 		int idx = group_sort_index.at<int>(i,0);
 		for(int j=0;j<groups_index[idx].rows;j++)
 		{
-			groups_index2[i].push_back( groups_index[idx].at<int>(0,j) );
+			groups_index2[i].push_back( groups_index[idx].at<int>(j,0) );
 		}
 	}
 
-	cout << "index2 :" << endl;
-	for(int i=0;i<group_num;i++)
-	{
-		for(int j=0;j<groups_index2[i].rows;j++)
-		{
-			cout << groups_index2[i].at<int>(j,0) << " ";
-		}
-		cout << endl;
-	}
-	
 	int t = 0;
 	for (int i=0 ; i < group_num; i++)
 	{
@@ -3134,19 +3690,136 @@ void Preprocessing_Data::TSP_boost_for_histogram_coarse_to_fine_multi(Mat Ev, Ma
 		Mat histo_sort_index_sub = Mat::zeros(groups_index2[i].rows, 1, CV_32S);
 
 		//繼續分群
-		if (30 < groups_index2[i].rows ) {
-			TSP_boost_for_histogram_coarse_to_fine_multi(Ev_sub, groups_index2[i].col(0), histo_sort_index_sub);
-			cout << "histo_sort_index_sub 1" << histo_sort_index_sub << endl;
+		if ( 50 < groups_index2[i].rows && level > 0 ) {
+			/////////////////bug: Ev_sub empty XD
+			for(int i=0;i<groups_index2[i].rows;i++)
+			{
+				int idx = groups_index2[i].at<int>(i,0);
+				Ev_global.row(idx).copyTo( Ev_sub.row(i) );
+			}
+			TSP_boost_for_histogram_coarse_to_fine_multi(Ev_sub, groups_index2[i].col(0), level-1);
+			//cout << "histo_sort_index_sub 1" << histo_sort_index_sub << endl;
 		} else { //太小，直接算TSP
 			TSP_for_index(Ev_sub, histo_sort_index_sub, groups_index2[i].col(0) );
-			cout << "histo_sort_index_sub 2" << histo_sort_index_sub << endl;
+			vector<int> tree_index;
+			for(int j=0;j<histo_sort_index_sub.rows;j++)
+			{
+				tree_index.push_back( histo_sort_index_sub.at<int>(j,0) );
+			}
+			group group_obj;
+			group_obj.index2 = tree_index;
+			tree_group.push_back(group_obj);
 		}
-		
-		for(int j=0;j<groups_index2[i].rows;j++)
+
+	}
+}
+
+void Preprocessing_Data::TSP_group_connect(vector<group> groups, Mat& histo_sort_index)
+{
+	int group_num = groups.size();
+
+	int min_target = groups[0].index2[0];
+	//cout << "min_target " << min_target << endl;
+	vector<int> temp = groups[0].index2;
+	groups[0].index2.clear();
+	for(int i=0;i<temp.size();i++)
+	{
+		if(temp[i]!=min_target)
 		{
-			histo_sort_index.at<int>(t++,0) = histo_sort_index_sub.at<int>(j,0);
+			groups[0].index2.push_back( temp[i] );
 		}
 	}
+
+	for(int s=0;s<group_num-1;s++)
+	{
+		int size = 1 + groups[s].index2.size() + 1;
+		Mat lab_sub = Mat::zeros(size,Ev_global.cols,CV_32F);
+		Mat lab_color_sort_index_sub = Mat::zeros(size,1,CV_32S);
+		Mat optimal_sort_index;
+
+		int t = 0;
+		Ev_global.row(min_target).copyTo( lab_sub.row(t++) );
+		for(int i=0;i<groups[s].index2.size();i++)
+		{
+			int index = groups[s].index2[i];
+			Ev_global.row(index).copyTo( lab_sub.row(t++) );
+		}
+
+		double min_len = 10000;
+		double min_idx;
+		for(int j=0;j<groups[s+1].index2.size();j++)
+		{
+			int next_start_index = groups[s+1].index2[j];
+			Ev_global.row(next_start_index).copyTo( lab_sub.row(t) );	
+			vector<int> original_index;
+			original_index.push_back(min_target);
+			for(int u=0;u<groups[s].index2.size();u++)	original_index.push_back(groups[s].index2[u]);
+			original_index.push_back( next_start_index );
+			//cout << "original_index: ";
+			//for(int u=0;u<original_index.size();u++) cout << original_index[u] << " ";
+
+			//double len = TSP_boost_path_by_EdgeWeight_with_original(lab_sub, lab_color_sort_index_sub, original_index);
+			//double len = TSP_boost_by_EdgeWeight_with_original(lab_sub, lab_color_sort_index_sub, original_index);
+			double len = TSP_boost_by_EdgeWeight_with_original(lab_sub, lab_color_sort_index_sub, 0, size-1, original_index);
+			//cout << "lab_color_sort_index_sub " << lab_color_sort_index_sub << endl;
+			if(len < min_len && lab_color_sort_index_sub.at<int>(size-1,0)==next_start_index) 
+			{
+				min_len = len;
+				min_idx = next_start_index;
+				optimal_sort_index = lab_color_sort_index_sub.clone();
+			}
+
+			original_index.clear();
+		}
+	
+		min_target = min_idx;
+	
+		for(int i=0;i<optimal_sort_index.rows;i++)
+		{
+			if(optimal_sort_index.at<int>(i,0) != min_target)
+				groups[s].sort_index.push_back( optimal_sort_index.at<int>(i,0) );
+		}
+
+		//cout << "min_target " << min_target << endl;
+		vector<int> temp = groups[s+1].index2;
+		groups[s+1].index2.clear();
+		for(int i=0;i<temp.size();i++)
+		{
+			if(temp[i]!=min_target)
+			{
+				groups[s+1].index2.push_back( temp[i] );
+			}
+		}
+	}
+
+
+	Mat Ev_sub = Mat::zeros(1 + groups[group_num-1].index2.size(),Ev_global.cols,CV_32F);
+	Mat Ev_sort_index_sub = Mat::zeros(1 + groups[group_num-1].index2.size(),1,CV_32S);
+	int t = 0;
+	vector<int> original_index;
+	Ev_global.row(min_target).copyTo( Ev_sub.row(t++) );
+	original_index.push_back(min_target);
+	for(int i=0;i<groups[group_num-1].index2.size();i++)
+	{
+		Ev_global.row( groups[group_num-1].index2[i] ).copyTo( Ev_sub.row(t++) );	
+		original_index.push_back( groups[group_num-1].index2[i] );
+	}
+	TSP_boost_by_EdgeWeight_with_original(Ev_sub, Ev_sort_index_sub, original_index);
+	//cout << "index " << Ev_sort_index_sub << endl;
+	for(int i=0;i<Ev_sort_index_sub.rows;i++)
+	{
+		groups[group_num-1].sort_index.push_back( Ev_sort_index_sub.at<int>(i,0) ); 
+	}
+
+	t = 0;
+	for(int i=0;i<group_num;i++)
+	{
+		for(int j=0;j<groups[i].sort_index.size();j++)
+		{
+			histo_sort_index.at<int>(t++,0) = groups[i].sort_index[j];
+		}
+	}
+
 }
 
 void Preprocessing_Data::sort_histogram_by_Ev_by_TSP_coarse_to_fine(Mat cluster_center, Mat& histo_sort_index)
@@ -3483,6 +4156,188 @@ void Preprocessing_Data::sort_histogram_by_Ev_by_TSP_coarse_to_fine(Mat cluster_
 	groups.clear();
 	fout.close();
 	
+}
+
+void Preprocessing_Data::sort_histogram_by_Ev_by_TSP_coarse_to_fine2(Mat cluster_center, Mat& histo_sort_index)
+{
+	int k = Ev_global.rows;//k是4的倍數
+	int dim = Ev_global.rows;
+	int group_num = 5;
+	Mat cluster_tag = Mat::zeros(k,1,CV_32S);
+	Mat group_cluster_centers = Mat::zeros(group_num,dim,CV_32F);
+	//cuda_kmeans(Ev_global, group_num, cluster_tag, group_cluster_centers);
+	kmeans(Ev_global, group_num, cluster_tag, TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 100, 0.0001), 2, KMEANS_PP_CENTERS,group_cluster_centers);
+	class group{
+	public:
+		vector<int> index;
+		vector<int> index2;
+		vector<int> sort_index;
+		vector<int> adj_index;
+	};
+	vector<group> groups(group_num);
+
+	for(int i=0;i<k;i++)
+	{
+		int tag = cluster_tag.at<int>(i,0);
+		groups[tag].index.push_back(i);
+	}
+
+	///////////////////////////////
+	ofstream fout("histo_test.txt"); 
+
+	cout << "index :" << endl;
+	fout << "index :" << endl;
+ 	for(int i=0;i<group_num;i++)
+	{
+		for(int j=0;j<groups[i].index.size();j++)
+		{
+			cout << groups[i].index[j] << " ";
+			fout << groups[i].index[j] << " ";
+		}
+		cout << endl;
+		fout << endl;
+	}
+
+
+	Mat group_sort_index = Mat::zeros(group_num,1,CV_32S);
+	//TSP_boost_path_by_EdgeWeight(cluster_centers, color_sort_index);
+	//TSP_boost_by_EdgeWeight(cluster_centers, color_sort_index);
+	tsp_brute tsp;
+	tsp.tsp_path(group_cluster_centers,group_sort_index);	
+
+
+	for(int i=0;i<group_num;i++)
+	{
+		int index = group_sort_index.at<int>(i,0);
+		for(int j=0;j<groups[index].index.size();j++)
+		{
+			groups[i].index2.push_back( groups[index].index[j] );
+		}
+	}
+
+	cout << "index2 :" << endl;
+	fout << "index2 :" << endl;
+ 	for(int i=0;i<group_num;i++)
+	{
+		for(int j=0;j<groups[i].index2.size();j++)
+		{
+			cout << groups[i].index2[j] << " ";
+			fout << groups[i].index2[j] << " ";
+		}
+		cout << endl;
+		fout << endl;
+	}
+
+
+	////////////////////////////////////////////////////////////////////////////////////
+	int min_target = groups[0].index2[0];
+	cout << "min_target " << min_target << endl;
+	vector<int> temp = groups[0].index2;
+	groups[0].index2.clear();
+	for(int i=0;i<temp.size();i++)
+	{
+		if(temp[i]!=min_target)
+		{
+			groups[0].index2.push_back( temp[i] );
+		}
+	}
+
+	for(int s=0;s<group_num-1;s++)
+	{
+		int size = 1 + groups[s].index2.size() + 1;
+		Mat lab_sub = Mat::zeros(size,Ev_global.cols,CV_32F);
+		Mat lab_color_sort_index_sub = Mat::zeros(size,1,CV_32S);
+		Mat optimal_sort_index;
+
+		int t = 0;
+		Ev_global.row(min_target).copyTo( lab_sub.row(t++) );
+		for(int i=0;i<groups[s].index2.size();i++)
+		{
+			int index = groups[s].index2[i];
+			Ev_global.row(index).copyTo( lab_sub.row(t++) );
+		}
+
+		double min_len = 10000;
+		double min_idx;
+		for(int j=0;j<groups[s+1].index2.size();j++)
+		{
+			int next_start_index = groups[s+1].index2[j];
+			Ev_global.row(next_start_index).copyTo( lab_sub.row(t) );	
+			vector<int> original_index;
+			original_index.push_back(min_target);
+			for(int u=0;u<groups[s].index2.size();u++)	original_index.push_back(groups[s].index2[u]);
+			original_index.push_back( next_start_index );
+			//cout << "original_index: ";
+			//for(int u=0;u<original_index.size();u++) cout << original_index[u] << " ";
+
+			//double len = TSP_boost_path_by_EdgeWeight_with_original(lab_sub, lab_color_sort_index_sub, original_index);
+			//double len = TSP_boost_by_EdgeWeight_with_original(lab_sub, lab_color_sort_index_sub, original_index);
+			double len = TSP_boost_by_EdgeWeight_with_original(lab_sub, lab_color_sort_index_sub, 0, size-1, original_index);
+			cout << "lab_color_sort_index_sub " << lab_color_sort_index_sub << endl;
+			if(len < min_len && lab_color_sort_index_sub.at<int>(size-1,0)==next_start_index) 
+			{
+				min_len = len;
+				min_idx = next_start_index;
+				optimal_sort_index = lab_color_sort_index_sub.clone();
+			}
+
+			original_index.clear();
+		}
+	
+		min_target = min_idx;
+	
+		for(int i=0;i<optimal_sort_index.rows;i++)
+		{
+			if(optimal_sort_index.at<int>(i,0) != min_target)
+				groups[s].sort_index.push_back( optimal_sort_index.at<int>(i,0) );
+		}
+
+		cout << "min_target " << min_target << endl;
+		vector<int> temp = groups[s+1].index2;
+		groups[s+1].index2.clear();
+		for(int i=0;i<temp.size();i++)
+		{
+			if(temp[i]!=min_target)
+			{
+				groups[s+1].index2.push_back( temp[i] );
+			}
+		}
+	}
+
+
+	Mat Ev_sub = Mat::zeros(1 + groups[group_num-1].index2.size(),Ev_global.cols,CV_32F);
+	Mat Ev_sort_index_sub = Mat::zeros(1 + groups[group_num-1].index2.size(),1,CV_32S);
+	int t = 0;
+	vector<int> original_index;
+	Ev_global.row(min_target).copyTo( Ev_sub.row(t++) );
+	original_index.push_back(min_target);
+	for(int i=0;i<groups[group_num-1].index2.size();i++)
+	{
+		Ev_global.row( groups[group_num-1].index2[i] ).copyTo( Ev_sub.row(t++) );	
+		original_index.push_back( groups[group_num-1].index2[i] );
+	}
+	TSP_boost_by_EdgeWeight_with_original(Ev_sub, Ev_sort_index_sub, original_index);
+	cout << "index " << Ev_sort_index_sub << endl;
+	for(int i=0;i<Ev_sort_index_sub.rows;i++)
+	{
+		groups[group_num-1].sort_index.push_back( Ev_sort_index_sub.at<int>(i,0) ); 
+	}
+
+	fout << "sort_index: " << endl;
+	t = 0;
+	for(int i=0;i<group_num;i++)
+	{
+		for(int j=0;j<groups[i].sort_index.size();j++)
+		{
+			cout << groups[i].sort_index[j] << " ";
+			fout << groups[i].sort_index[j] << " ";
+			histo_sort_index.at<int>(t++,0) = groups[i].sort_index[j];
+		}
+		cout << endl;
+		fout << endl;
+	}
+
+	fout.close();	
 }
 
 void Preprocessing_Data::Position_by_histogram_sort_index(Mat& histo_position,Mat histo_sort_index)
