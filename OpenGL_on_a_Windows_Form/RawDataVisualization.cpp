@@ -12,7 +12,7 @@ namespace OpenGLForm{
 			parentPanel->MouseDoubleClick += gcnew System::Windows::Forms::MouseEventHandler( this, &RawDataVisualization::RawDataMouseDoubleClick );	 
 			time_string();
 			//Initialize mouse handler variable
-			scale_x[1] = 1.7; scale_y[1] = 0.015; scale_z[1] = 0.0;
+			scale_x[1] = 0.5; scale_y[1] = 0.5; scale_z[1] = 0.0;
 			scale_size[1] = 0.005;
 			move_x[1] = 0.0; move_y[1] = 0.0; move_z[1] = 0.0;
 			scale_factor[1] = 0.0;
@@ -26,25 +26,10 @@ namespace OpenGLForm{
 			select_histogram_flag = false;
 	}
 
-	System::Void RawDataVisualization::Render(int rawdata_width,int rawdata_height){
-			wglmakecur();
-				
-			windowWidth[1] = rawdata_width;
-			windowHeight[1] = rawdata_height;
-
-			glClearColor(0.0, 0.0, 0.0, 0.0);  //Set the cleared screen colour to black
-			glViewport(0, 0, windowWidth[1], windowHeight[1]);   //This sets up the viewport so that the coordinates (0, 0) are at the top left of the window		
-			glMatrixMode(GL_PROJECTION);
-			glLoadIdentity();
-			glOrtho(0, windowWidth[1], windowHeight[1], 0, -10, 10);
-
-			//Back to the modelview so we can draw stuff 
-			glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Clear the screen and depth buffer
-
+	System::Void RawDataVisualization::themeriverView()
+	{
 			glTranslatef(120.0+move_x[1],150.0+move_y[1],0.0+move_z[1]);
-			glScalef(scale_factor[1]+scale_x[1],scale_factor[1]+scale_y[1],scale_factor[1]+scale_z[1]);
+			glScalef(scale_factor[1]+scale_x[1]+1.2, scale_factor[1]+scale_y[1]-0.480, scale_factor[1]+scale_z[1]);
 			glGetDoublev(GL_MODELVIEW_MATRIX, ModelViewMatrix2);//////////////
 
 			if(!histogram_index.empty())
@@ -201,7 +186,206 @@ namespace OpenGLForm{
 
 					y_position+= 10000;
 				}
+			}	
+	}
+
+	System::Void RawDataVisualization::Render(int rawdata_width,int rawdata_height){
+			wglmakecur();
+				
+			windowWidth[1] = rawdata_width;
+			windowHeight[1] = rawdata_height;
+
+			glClearColor(0.0, 0.0, 0.0, 0.0);  //Set the cleared screen colour to black
+			glViewport(0, 0, windowWidth[1], windowHeight[1]);   //This sets up the viewport so that the coordinates (0, 0) are at the top left of the window		
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glOrtho(0, windowWidth[1], windowHeight[1], 0, -10, 10);
+
+			//Back to the modelview so we can draw stuff 
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Clear the screen and depth buffer
+
+			if(preprocessing_data.view_select_right_index==2) themeriverView();
+			else if(preprocessing_data.view_select_right_index==1)
+			{
+				glTranslatef(0.0+move_x[1],0.0+move_y[1],0.0+move_z[1]);
+				glScalef(0.8+scale_factor[1]+scale_x[1], 0.8+scale_factor[1]+scale_y[1], 0.8+scale_factor[1]+scale_z[1]);
+				glGetDoublev(GL_MODELVIEW_MATRIX, ModelViewMatrix2);
+				for(int day=0; day<preprocessing_data.dim ;day++)
+				{
+					
+					glPushMatrix();
+					glBegin( GL_POINTS );
+					glPointSize( 14.0 );
+					glColor3f( 0.95f, 0.207, 0.031f );
+					glVertex2f( preprocessing_data.position_on_2D.at<double>(day,0), preprocessing_data.position_on_2D.at<double>(day,1) );
+					glEnd();
+					glPopMatrix();
+					
+					//DrawCircle(preprocessing_data.position_on_2D.at<double>(day,0),preprocessing_data.position_on_2D.at<double>(day,1), 2.0, 1, 0, 0);
+					//DrawCircle(preprocessing_data.position_on_2D.at<double>(day,0),preprocessing_data.position_on_2D.at<double>(day,1), 2.0, (rand() % 11)/10.0, (rand() % 11)/10.0, (rand() % 11)/10.0);
+				}
 			}
+			//glTranslatef(120.0+move_x[1],150.0+move_y[1],0.0+move_z[1]);
+			//glScalef(scale_factor[1]+scale_x[1],scale_factor[1]+scale_y[1],scale_factor[1]+scale_z[1]);
+			//glGetDoublev(GL_MODELVIEW_MATRIX, ModelViewMatrix2);//////////////
+
+			//if(!histogram_index.empty())
+			//{
+			//	int y_position = 0;
+			//	int y_position_text = 0;
+			//	for(int u=0;u<histogram_index.size();u++)
+			//	{
+			//		int idx = histogram_index[u];
+			//		int this_month = preprocessing_data.find_month_and_day[idx].at<int>(0,0);
+			//		int this_day = preprocessing_data.find_month_and_day[idx].at<int>(0,1);
+
+			//		DrawText_FTGL(this_month+1,-50,y_position_text,20.0);
+			//		DrawText_FTGL(this_day+1,-35,y_position_text,20.0);
+			//		y_position_text+=10000;
+
+			//		for(int i=0;i<23;i++)
+			//		{
+			//			if(preprocessing_data.data_dim>=6)
+			//			{
+			//				int hour_data_current = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0]
+			//									  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[1]
+			//									  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[2]
+			//									  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[3]
+			//									  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[4]
+			//									  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[5];
+			//				int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0]
+			//								   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1]
+			//								   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[2]
+			//								   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[3]
+			//								   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[4]
+			//								   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[5];
+			//				glPushMatrix(); 
+			//				glBegin(GL_QUADS); 
+			//				glColor3f(preprocessing_data.data_color[5][0],preprocessing_data.data_color[5][1],preprocessing_data.data_color[5][2]);  
+			//					glVertex3f(i*15,y_position,0);
+			//					glVertex3f((i+1)*15,y_position,0);
+			//					glVertex3f((i+1)*15,y_position-hour_data_next,0); 
+			//					glVertex3f(i*15,y_position-hour_data_current,0);						
+			//				glEnd();
+			//				glPopMatrix();
+			//			}
+			//		}
+
+			//		for(int i=0;i<23;i++)
+			//		{
+			//			if(preprocessing_data.data_dim>=5)
+			//			{
+			//				int hour_data_current = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0]
+			//									  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[1]
+			//									  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[2]
+			//									  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[3]
+			//									  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[4];
+			//				int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0]
+			//								   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1]
+			//								   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[2]
+			//								   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[3]
+			//								   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[4];
+			//				glPushMatrix(); 
+			//				glBegin(GL_QUADS); 
+			//					glColor3f(preprocessing_data.data_color[4][0],preprocessing_data.data_color[4][1],preprocessing_data.data_color[4][2]); 
+			//					glVertex3f(i*15,y_position,0);
+			//					glVertex3f((i+1)*15,y_position,0);
+			//					glVertex3f((i+1)*15,y_position-hour_data_next,0); 
+			//					glVertex3f(i*15,y_position-hour_data_current,0);						
+			//				glEnd();
+			//				glPopMatrix();
+			//			}
+			//		}
+
+			//		for(int i=0;i<23;i++)
+			//		{
+			//			if(preprocessing_data.data_dim>=4)
+			//			{
+			//				int hour_data_current = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0]
+			//									  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[1]
+			//									  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[2]
+			//									  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[3];
+			//				int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0]
+			//								   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1]
+			//								   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[2]
+			//								   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[3];
+			//				glPushMatrix(); 
+			//				glBegin(GL_QUADS); 
+			//					glColor3f(preprocessing_data.data_color[3][0],preprocessing_data.data_color[3][1],preprocessing_data.data_color[3][2]);   
+			//					glVertex3f(i*15,y_position,0);
+			//					glVertex3f((i+1)*15,y_position,0);
+			//					glVertex3f((i+1)*15,y_position-hour_data_next,0); 
+			//					glVertex3f(i*15,y_position-hour_data_current,0);						
+			//				glEnd();
+			//				glPopMatrix();
+			//			}
+			//		}
+
+			//		for(int i=0;i<23;i++)
+			//		{
+			//			if(preprocessing_data.data_dim>=3)
+			//			{
+			//				int hour_data_current = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0]
+			//									  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[1]
+			//									  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[2];
+			//				int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0]
+			//								   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1]
+			//								   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[2];
+			//				glPushMatrix(); 
+			//				glBegin(GL_QUADS); 
+			//					glColor3f(preprocessing_data.data_color[2][0],preprocessing_data.data_color[2][1],preprocessing_data.data_color[2][2]); 
+			//					glVertex3f(i*15,y_position,0);
+			//					glVertex3f((i+1)*15,y_position,0);
+			//					glVertex3f((i+1)*15,y_position-hour_data_next,0); 
+			//					glVertex3f(i*15,y_position-hour_data_current,0);						
+			//				glEnd();
+			//				glPopMatrix();
+			//			}
+			//		}
+			//		for(int i=0;i<23;i++)
+			//		{
+			//			if(preprocessing_data.data_dim>=2)
+			//			{
+			//				int hour_data_current = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0]
+			//									  + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[1];
+			//				int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0]
+			//								   + preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[1];
+			//				glPushMatrix(); 
+			//				glBegin(GL_QUADS); 
+			//					glColor3f(preprocessing_data.data_color[1][0],preprocessing_data.data_color[1][1],preprocessing_data.data_color[1][2]); 
+			//					glVertex3f(i*15,y_position,0);
+			//					glVertex3f((i+1)*15,y_position,0);
+			//					glVertex3f((i+1)*15,y_position-hour_data_next,0); 
+			//					glVertex3f(i*15,y_position-hour_data_current,0);						
+			//				glEnd();
+			//				glPopMatrix();
+			//			}
+			//		}
+			//		for(int i=0;i<23;i++)
+			//		{
+			//			if(preprocessing_data.data_dim>=1)
+			//			{
+			//				DrawText_FTGL(i,i*15-5,y_position+750,12.0);
+			//				int hour_data_current= preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i].data[0];
+			//				int hour_data_next = preprocessing_data.month_vec[this_month].day_vec[this_day].hour_vec[i+1].data[0];
+			//				glPushMatrix(); 
+			//				glBegin(GL_QUADS); 
+			//					glColor3f(preprocessing_data.data_color[0][0],preprocessing_data.data_color[0][1],preprocessing_data.data_color[0][2]); 
+			//					glVertex3f(i*15,y_position,0);
+			//					glVertex3f((i+1)*15,y_position,0);
+			//					glVertex3f((i+1)*15,y_position-hour_data_next,0); 
+			//					glVertex3f(i*15,y_position-hour_data_current,0);						
+			//				glEnd();
+			//				glPopMatrix();
+			//			}
+			//		}
+			//		DrawText_FTGL(23,23*15-5,y_position+750,12.0);
+
+			//		y_position+= 10000;
+			//	}
+			//}
 
 			SwapOpenGLBuffers();
 			

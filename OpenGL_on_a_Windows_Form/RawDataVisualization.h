@@ -20,5 +20,7 @@ namespace OpenGLForm{
 			System::Void DrawText_FTGL(int,int,int,float);
 			System::Void DrawCircle(int,int,float,float,float,float);
 			System::Void time_string();
+
+			System::Void themeriverView();
 	};
 }

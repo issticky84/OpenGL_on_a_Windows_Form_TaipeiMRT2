@@ -39,6 +39,8 @@ Preprocessing_Data::Preprocessing_Data()
 	read_lab_csv();
 
 	comboBox_indx = 0;
+	view_select_left_index = 0;
+	view_select_right_index = 1;
 }
 
 void Preprocessing_Data::Initial_selection_flag(bool f1, bool f2, bool f3, bool f4, bool f5, bool f6)
@@ -95,6 +97,8 @@ void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read
 	month_vec = month_vec_read;
 	day_amount = day_amount_read;
 	hour_amount = hour_amount_read;
+
+	start_on_2D(hour_amount,day_amount);
 
 	find_month_and_day = new Mat[day_amount];
 	int c = 0;
@@ -172,10 +176,11 @@ void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read
 
 	output_mat_as_csv_file_float("model_original.csv",model);
 
-	for(int i=0;i<model.cols;i++)
-	{
-		normalize(model.col(i),model.col(i),0,10,NORM_MINMAX);
-	}
+	//for(int i=0;i<model.cols;i++)
+	//{
+	//	normalize(model.col(i),model.col(i),0,1,NORM_MINMAX);
+	//}
+	normalize(model,model,0,1,NORM_MINMAX);
 	//model.col(0) = model.col(0).mul(3);
 
 	output_mat_as_csv_file_float("model.csv",model);
@@ -215,15 +220,20 @@ void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read
 	//TSP_boost_for_lab_color_coarse_to_fine(lab,lab_color_sort_index);
 	//TSP_boost_for_lab_color_coarse_to_fine3(lab,lab_color_sort_index);
 	//sort_pattern_by_color_by_TSP_coarse_to_fine2(lab,lab_color_sort_index);
-	tsp_brute tsp;
-	tsp.tsp_path(lab,lab_color_sort_index);
+	if(k>9)
+		sort_pattern_by_color_by_TSP_coarse_to_fine2(lab,lab_color_sort_index);
+	else
+	{
+		tsp_brute tsp;
+		tsp.tsp_path(lab,lab_color_sort_index);
+	}
 	output_mat_as_csv_file_int("lab_color_sort_index.csv",lab_color_sort_index);
 
 	rearrange_mat_by_sort_color_index(lab_color_sort_index,cluster_centers,cluster_tag,rgb_mat3);
 
 	output_mat_as_csv_file_float("rgb_mat_sort.csv",rgb_mat3);
 	output_mat_as_csv_file_float("cluster_center_sort.csv",cluster_centers);
-
+	output_mat_as_csv_file_int("cluster_tag_sort.csv",cluster_tag);
 	//=======================voting=================//
 	voting_for_data(day_amount,k,cluster_tag);
 	output_mat_as_csv_file_int("histogram.csv",histogram);
@@ -307,6 +317,134 @@ void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read
 	model.release();
 	cluster_centers.release();
 	raw_data_3D.release();
+}
+
+void Preprocessing_Data::start_on_2D(int hour_amount,int day_amount)
+{
+	int dim_index[] = {31,98,30,23,90,10,12,129,55,54,53,52,51,50,42,132,91,89,133,88,29,28,26,25,21,13,14,15,17,18,70,69,66,64,63,62,60,59,43,38,37,
+					   35,34,32,174,175,176,177,178,128,45,46,47,48,96,95,85,84,83,81,79,78,77,22,7,19};
+	dim = sizeof(dim_index)/sizeof(dim_index[0]);
+
+	
+	Mat dim_data_enter_avg = Mat::zeros(dim,24,CV_32F);
+	Mat dim_data_out_avg = Mat::zeros(dim,24,CV_32F);
+	for(int s=0;s<dim;s++)
+	{
+		for(int i=0;i<month_vec.size();i++)
+		{
+			for(int j=0;j<month_vec[i].day_vec.size();j++)
+			{
+				for(int u=0;u<24;u++)
+				{
+					int dim_num = dim_index[s];
+					dim_data_enter_avg.at<float>(s,u) += month_vec[i].day_vec[j].hour_vec[u].enter[ dim_num ];
+					dim_data_out_avg.at<float>(s,u) += month_vec[i].day_vec[j].hour_vec[u].out[ dim_num ];
+				}
+			
+			}
+		}
+	}
+	
+	dim_data_enter_avg = dim_data_enter_avg.mul(1.0/day_amount);
+	dim_data_out_avg = dim_data_out_avg.mul(1.0/day_amount);
+
+	output_mat_as_csv_file_float("dim_data_enter_avg.csv",dim_data_enter_avg);
+
+	Mat model = Mat::zeros(dim*24,2,CV_32F);
+	int t = 0;
+	for(int s=0;s<dim;s++)
+	{
+		for(int u=0;u<24;u++)
+		{
+			model.at<float>(t,0) = dim_data_enter_avg.at<float>(s,u);
+			model.at<float>(t,1) = dim_data_out_avg.at<float>(s,u);
+			t++;
+		}
+	}
+
+	output_mat_as_csv_file_float("model_on_2D.csv",model);
+
+	for(int i=0;i<model.cols;i++)
+	{
+		normalize(model.col(i),model.col(i),0,1,NORM_MINMAX);
+	}
+
+    int k = 10; 
+    Mat cluster_tag; //Tag:0~k-1
+    int attempts = 2;//應該是執行次數
+	Mat cluster_centers;
+	//使用k means分群
+	kmeans(model, k, cluster_tag,TermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 100, 0.0001), attempts,KMEANS_PP_CENTERS,cluster_centers);
+
+	//output_mat_as_csv_file("cluster_centers_old.csv",cluster_centers);
+
+	if(cluster_centers.cols>=3) rgb_mat2_on_2D = lab_alignment_new(cluster_centers,30).clone();
+	else if(cluster_centers.cols==1) rgb_mat2_on_2D = lab_alignment_dim1(cluster_centers,30).clone();
+	else if(cluster_centers.cols==2) rgb_mat2_on_2D = lab_alignment_dim2 (cluster_centers,30).clone();
+
+	//output_mat_as_csv_file("rgb_mat2_on_2D_old.csv",rgb_mat2_on_2D);
+
+	Mat lab_color_sort_index = Mat::zeros(k,1,CV_32S);
+	sort_pattern_by_color_by_TSP_coarse_to_fine(lab,lab_color_sort_index);
+	rearrange_mat_by_sort_color_index(lab_color_sort_index,cluster_centers,cluster_tag,rgb_mat2_on_2D);
+
+	//output_mat_as_csv_file("rgb_mat2_on_2D_sort.csv",rgb_mat2_on_2D);
+	//output_mat_as_csv_file("cluster_center_sort.csv",cluster_centers);
+	//output_mat_as_csv_file("cluster_tag_sort.csv",cluster_tag);
+	
+	//=======================voting=================//
+	voting_for_data_on_2D(dim,k,cluster_tag);
+	//output_mat_as_csv_file_int("histogram_on_2D.csv",histogram_on_2D);
+	
+	Mat Ev = Mat::zeros(histogram_on_2D.rows,cluster_centers.cols,CV_32F);	
+	for(int i=0;i<histogram_on_2D.rows;i++)
+	{
+		for(int j=0;j<k;j++)
+		{
+			Ev.row(i) += (histogram_on_2D.at<int>(i,j)/600.0)*cluster_centers.row(j);
+		}
+	}
+
+	
+	Mat Ev_dist = Mat::zeros(histogram_on_2D.rows,histogram_on_2D.rows,CV_64F);
+	for(int i=0;i<Ev_dist.rows;i++)
+	{
+		for(int j=0;j<Ev_dist.rows;j++)	
+		{
+			if(i==j) continue;
+			for(int s=0; s<Ev.cols ;s++)
+			{
+				Ev_dist.at<double>(i,j) += abs( Ev.at<float>(i,s) - Ev.at<float>(j,s) );
+			}
+		}
+	}
+	output_mat_as_csv_file_double("Ev_dist.csv",Ev_dist);
+
+	Mat avg_dist = Mat::zeros(dim,dim,CV_64F);
+	for(int i=0;i<dim;i++)
+	{
+		for(int j=0;j<dim;j++)	
+		{
+			if(i==j) continue;
+			for(int s=0; s<dim_data_enter_avg.cols ;s++)
+			{
+				avg_dist.at<double>(i,j) += abs( dim_data_enter_avg.at<float>(i,s) - dim_data_enter_avg.at<float>(j,s) );
+			}
+			for(int s=0; s<dim_data_out_avg.cols ;s++)
+			{
+				avg_dist.at<double>(i,j) += abs( dim_data_out_avg.at<float>(i,s) - dim_data_out_avg.at<float>(j,s) );
+			}
+		}
+	}
+	output_mat_as_csv_file_double("avg_dist.csv",avg_dist);
+
+	Mat position_mat = MDS(avg_dist,2).clone();
+
+	normalize(position_mat.col(0),position_mat.col(0),1,300,NORM_MINMAX); 
+	normalize(position_mat.col(1),position_mat.col(1),1,300,NORM_MINMAX); 
+	position_on_2D = position_mat.clone();
+
+	output_mat_as_csv_file_double("position_on_2D.csv",position_on_2D);
 }
 
 void Preprocessing_Data::start2(vector<month> month_vec_read, vector<holiday> holiday_vec, int k)
@@ -592,6 +730,21 @@ int Preprocessing_Data::zellers_congruence_for_week(int year, int month, int dat
 	if(w==0) w = 7;
 
 	return w;
+}
+
+void Preprocessing_Data::voting_for_data_on_2D(int day_amount,int k,Mat cluster_tag)
+{
+	histogram_on_2D = Mat::zeros(day_amount,k,CV_32S);
+
+	int t = 0;
+	for(int i=0;i<day_amount;i++)
+	{
+		for(int u=0;u<24;u++)
+		{
+			int tag = cluster_tag.at<int>(t++,0);
+			histogram_on_2D.at<int>(i,tag)++;
+		}
+	}
 }
 
 bool Preprocessing_Data::check_holiday(vector<holiday> holiday_vec,int year, int month, int date)
@@ -946,12 +1099,12 @@ Mat Preprocessing_Data::MDS(Mat target_mat, int dim)
 	Matrix<double,Dynamic,Dynamic> target_mat_EigenType;//The type pass to Tapkee must be "double" not "float"
 	cv2eigen(target_mat,target_mat_EigenType);
 	TapkeeOutput output = tapkee::initialize() 
-						   .withParameters((method=MultidimensionalScaling,target_dimension=1))
+						   .withParameters((method=MultidimensionalScaling,target_dimension=dim))
 						   .embedUsing(target_mat_EigenType);
 	
 	Mat MDS_mat; //Type:double  
 	eigen2cv(output.embedding,MDS_mat);
-	normalize(MDS_mat.col(0),MDS_mat.col(0),1,5000,NORM_MINMAX);//normalize to 1~1000	
+	//normalize(MDS_mat.col(0),MDS_mat.col(0),1,5000,NORM_MINMAX);//normalize to 1~1000	
 	//MDS_mat = MDS_mat.mul(50.0);
 
 	return MDS_mat;

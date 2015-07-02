@@ -96,6 +96,10 @@ namespace OpenGL_on_a_Windows_Form
 	private: System::Windows::Forms::CheckBox^  tourism_in;
 	private: System::Windows::Forms::CheckBox^  tourism_out;
 	private: System::Windows::Forms::ComboBox^  comboBox1;
+	private: System::Windows::Forms::ComboBox^  view_select_left;
+	private: System::Windows::Forms::Label^  view_left_label;
+	private: System::Windows::Forms::Label^  view_right_label;
+	private: System::Windows::Forms::ComboBox^  view_select_right;
 
 
 
@@ -130,6 +134,10 @@ namespace OpenGL_on_a_Windows_Form
 			this->file_directory = (gcnew System::Windows::Forms::Label());
 			this->backgroundWorker1 = (gcnew System::ComponentModel::BackgroundWorker());
 			this->comboBox1 = (gcnew System::Windows::Forms::ComboBox());
+			this->view_select_left = (gcnew System::Windows::Forms::ComboBox());
+			this->view_left_label = (gcnew System::Windows::Forms::Label());
+			this->view_right_label = (gcnew System::Windows::Forms::Label());
+			this->view_select_right = (gcnew System::Windows::Forms::ComboBox());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->trackBar1))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -181,7 +189,7 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// button2
 			// 
-			this->button2->Location = System::Drawing::Point(1565, 17);
+			this->button2->Location = System::Drawing::Point(1565, 36);
 			this->button2->Name = L"button2";
 			this->button2->Size = System::Drawing::Size(63, 32);
 			this->button2->TabIndex = 5;
@@ -339,13 +347,61 @@ namespace OpenGL_on_a_Windows_Form
 			this->comboBox1->TabIndex = 20;
 			this->comboBox1->Text = L"All";
 			this->comboBox1->SelectedIndexChanged += gcnew System::EventHandler(this, &Form1::comboBox1_SelectedIndexChanged);
-
+			// 
+			// view_select_left
+			// 
+			this->view_select_left->Cursor = System::Windows::Forms::Cursors::Default;
+			this->view_select_left->FormattingEnabled = true;
+			this->view_select_left->Items->AddRange(gcnew cli::array< System::Object^  >(4) {L"Time", L"Station", L"ThemeRiver", L"Map"});
+			this->view_select_left->Location = System::Drawing::Point(240, 10);
+			this->view_select_left->Name = L"view_select_left";
+			this->view_select_left->Size = System::Drawing::Size(121, 20);
+			this->view_select_left->TabIndex = 21;
+			this->view_select_left->Text = L"Time";
+			this->view_select_left->SelectedIndexChanged += gcnew System::EventHandler(this, &Form1::view_select_left_SelectedIndexChanged);
+			// 
+			// view_left_label
+			// 
+			this->view_left_label->AutoSize = true;
+			this->view_left_label->Font = (gcnew System::Drawing::Font(L"新細明體", 11.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
+				static_cast<System::Byte>(136)));
+			this->view_left_label->Location = System::Drawing::Point(200, 11);
+			this->view_left_label->Name = L"view_left_label";
+			this->view_left_label->Size = System::Drawing::Size(34, 15);
+			this->view_left_label->TabIndex = 22;
+			this->view_left_label->Text = L"view";
+			// 
+			// view_right_label
+			// 
+			this->view_right_label->AutoSize = true;
+			this->view_right_label->Font = (gcnew System::Drawing::Font(L"新細明體", 11.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
+				static_cast<System::Byte>(136)));
+			this->view_right_label->Location = System::Drawing::Point(1016, 11);
+			this->view_right_label->Name = L"view_right_label";
+			this->view_right_label->Size = System::Drawing::Size(34, 15);
+			this->view_right_label->TabIndex = 23;
+			this->view_right_label->Text = L"view";
+			// 
+			// view_select_right
+			// 
+			this->view_select_right->FormattingEnabled = true;
+			this->view_select_right->Items->AddRange(gcnew cli::array< System::Object^  >(4) {L"Time", L"Station", L"ThemeRiver", L"Map"});
+			this->view_select_right->Location = System::Drawing::Point(1056, 10);
+			this->view_select_right->Name = L"view_select_right";
+			this->view_select_right->Size = System::Drawing::Size(121, 20);
+			this->view_select_right->TabIndex = 24;
+			this->view_select_right->Text = L"Station";
+			this->view_select_right->SelectedIndexChanged += gcnew System::EventHandler(this, &Form1::view_select_right_SelectedIndexChanged);
 			// 
 			// Form1
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1916, 1054);
+			this->Controls->Add(this->view_select_right);
+			this->Controls->Add(this->view_right_label);
+			this->Controls->Add(this->view_left_label);
+			this->Controls->Add(this->view_select_left);
 			this->Controls->Add(this->comboBox1);
 			this->Controls->Add(this->tourism_out);
 			this->Controls->Add(this->tourism_in);
@@ -697,6 +753,18 @@ namespace OpenGL_on_a_Windows_Form
 				 preprocessing_data.comboBox_indx = selectedIndex;
 				 //System::Windows::Forms::MessageBox::Show("Selected Item Text: " + selectedItem + "\n" + "Index: " + selectedIndex.ToString());
 			 }
+private: System::Void view_select_left_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e) {
+				 int selectedIndex = view_select_left->SelectedIndex;
+				 Object^ selectedItem = view_select_left->SelectedItem;
+
+				 preprocessing_data.view_select_left_index = selectedIndex;
+		 }
+private: System::Void view_select_right_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e) {
+				 int selectedIndex = view_select_right->SelectedIndex;
+				 Object^ selectedItem = view_select_right->SelectedItem;
+
+				 preprocessing_data.view_select_right_index = selectedIndex;
+		 }
 };
 }
 

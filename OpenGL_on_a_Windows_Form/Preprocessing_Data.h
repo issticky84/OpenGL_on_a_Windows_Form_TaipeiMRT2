@@ -118,6 +118,14 @@ public:
 	Mat* find_month_and_day;
 	vector< vector<float> > data_color;
 	int comboBox_indx;
+	void start_on_2D(int,int);
+	Mat histogram_on_2D;
+	Mat rgb_mat2_on_2D;
+	Mat position_on_2D;
+	int dim;
+	void voting_for_data_on_2D(int,int,Mat);
+
+	int view_select_left_index, view_select_right_index;
 };
 
 

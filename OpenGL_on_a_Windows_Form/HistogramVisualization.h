@@ -23,5 +23,7 @@ namespace OpenGLForm{
 			System::Void FindPatternByTable(int x,int y);
 			vector3 Unprojection(vector2 _2Dpos);
 			System::Void DrawHistogram(int i, int j, int& day, int& y_coord, float& end_position);
+
+			System::Void TimeView();
 	};
 }

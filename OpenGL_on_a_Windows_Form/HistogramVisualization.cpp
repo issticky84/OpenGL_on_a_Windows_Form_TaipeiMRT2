@@ -148,22 +148,9 @@ namespace OpenGLForm{
 			}		
 	}
 
-	System::Void HistogramVisualization::DrawHistogramVisualization(System::Void){
-			vector<float>  draw_color;	
-			draw_color.resize(3);
-
-
-			glClearColor(0.0, 0.0, 0.0, 0.0);  //Set the cleared screen colour to black
-			glViewport(0, 0, windowWidth[0], windowHeight[0]);   //This sets up the viewport so that the coordinates (0, 0) are at the top left of the window		
-			glMatrixMode(GL_PROJECTION);
-			glLoadIdentity();
-			glOrtho(0, windowWidth[0], windowHeight[0], 0, -10, 10);
-
-			//Back to the modelview so we can draw stuff 
-			glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Clear the screen and depth buffer
-
+	System::Void HistogramVisualization::TimeView()
+	{
+			vector<float>  draw_color(3);
 			//================================Time Line====================================//
 			glPushMatrix();
 			
@@ -289,7 +276,149 @@ namespace OpenGLForm{
 
 					}
 				}
+			}	
+	}
+
+	System::Void HistogramVisualization::DrawHistogramVisualization(System::Void){
+			glClearColor(0.0, 0.0, 0.0, 0.0);  //Set the cleared screen colour to black
+			glViewport(0, 0, windowWidth[0], windowHeight[0]);   //This sets up the viewport so that the coordinates (0, 0) are at the top left of the window		
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glOrtho(0, windowWidth[0], windowHeight[0], 0, -10, 10);
+
+			//Back to the modelview so we can draw stuff 
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Clear the screen and depth buffer
+
+			if(preprocessing_data.view_select_left_index==0) TimeView();
+			//================================Time Line====================================//
+			/*
+			glPushMatrix();
+			
+			glTranslatef(0.0,0.0+move_y[0],0.0+move_z[0]);
+			glScalef(scale_factor[0]+scale_x[0],scale_factor[0]+scale_y[0],scale_factor[0]+scale_z[0]);
+			draw_color[0] = 0.3; 
+			draw_color[1] = 0.3; 
+			draw_color[2] = 0.3;
+			RECTANGLE *block;
+			block = new RECTANGLE();
+			block->h = 2500;
+			block->w = 40;
+			block->x = 0;
+			block->y = -200;
+			DrawRectWithOpenGL(block,draw_color);
+			delete(block);
+			
+			int y_coord = 1280;
+			for(int i=0;i<preprocessing_data.month_vec.size();i++)
+			{
+				
+				int current_month = preprocessing_data.month_vec[i].this_month;
+				int day = preprocessing_data.month_vec[i].day_vec.size();
+				DrawText_FTGL(current_month,20,y_coord);
+				y_coord -= 6.5*day;
 			}
+
+			glPopMatrix();
+			//=================================================================================//
+
+			glTranslatef(0.0+move_x[0],0.0+move_y[0],0.0+move_z[0]);
+			glScalef(scale_factor[0]+scale_x[0],scale_factor[0]+scale_y[0],scale_factor[0]+scale_z[0]);
+
+			if(!preprocessing_data.histogram.empty())
+			{
+				int y_coord = 1300;
+				int pixels;
+				int current_hour;
+				int last_hour = -1;
+				int t=0;
+				int day = 0;
+				//for(int i=0;i<preprocessing_data.histogram.rows;++i)
+				for(int i=0;i<preprocessing_data.month_vec.size();i++)
+				{
+					for(int j=0;j<preprocessing_data.month_vec[i].day_vec.size();j++)
+					{
+						float end_position;
+						current_hour = preprocessing_data.month_vec[i].this_month;
+
+						int this_week = preprocessing_data.zellers_congruence_for_week(2011, i+1, j+1);
+
+						if(scale_x[0] > 0.3)
+						{
+							if(this_week == 6 || this_week == 7)
+							{
+								draw_color[0] = 0.3; 
+								draw_color[1] = 0; 
+								draw_color[2] = 0;
+								RECTANGLE *line;
+								line = new RECTANGLE();
+								line->h = 1.0;
+								line->w = 1800;
+								line->x = -400;
+								line->y = y_coord - 0.3;
+								DrawRectWithOpenGL(line,draw_color);
+								delete(line);						
+							}
+						}
+
+
+						if(current_hour!=last_hour)
+						{
+							draw_color[0] = 1; 
+							draw_color[1] = 1; 
+							draw_color[2] = 1;
+							RECTANGLE *line;
+							line = new RECTANGLE();
+							line->h = 3;
+							line->w = 1800;
+							line->x = -400;
+							line->y = y_coord - 4;
+							DrawRectWithOpenGL(line,draw_color);
+							//DrawText_FTGL(current_hour,20,y_coord-10);
+							t++;
+							y_coord-=10;
+							delete(line);
+						}
+	
+						if(preprocessing_data.comboBox_indx==0)
+							DrawHistogram(i,j,day,y_coord,end_position);
+						else if(preprocessing_data.comboBox_indx==1)
+						{
+							if(this_week>=1 && this_week<=5){
+								DrawHistogram(i,j,day,y_coord,end_position);
+							}
+						}
+						else if(preprocessing_data.comboBox_indx==2)
+						{
+							if(this_week==6 || this_week==7){
+								DrawHistogram(i,j,day,y_coord,end_position);
+							}
+						}
+
+						//table record
+						histogram_position_table[day].x = 110 + preprocessing_data.position.at<double>(day,0)/10.0;
+						histogram_position_table[day].y = y_coord;
+						histogram_position_table[day].z = end_position;
+						histogram_position_table[day].w = y_coord + 6.0;
+								
+						histogram_position_table[day].x *= (scale_factor[0] + scale_x[0]);
+						histogram_position_table[day].y *= (scale_factor[0] + scale_y[0]);
+						histogram_position_table[day].z *= (scale_factor[0] + scale_x[0]);
+						histogram_position_table[day].w *= (scale_factor[0] + scale_y[0]);
+						histogram_position_table[day].x += move_x[0];
+						histogram_position_table[day].y += move_y[0];
+						histogram_position_table[day].z += move_x[0];
+						histogram_position_table[day].w += move_y[0];
+
+						y_coord-=6;
+						last_hour = current_hour;
+
+						day++;
+
+					}
+				}
+			}*/
 
 	}
 
