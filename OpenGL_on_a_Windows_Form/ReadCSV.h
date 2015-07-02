@@ -14,6 +14,8 @@ using namespace std;
 class ReadCSV
 {
 public:
+	void test_image();
+
 	void read_raw_data(char file_name[]);
 	void clear();
 

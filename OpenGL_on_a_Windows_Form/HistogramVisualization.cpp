@@ -161,10 +161,10 @@ namespace OpenGLForm{
 			draw_color[2] = 0.3;
 			RECTANGLE *block;
 			block = new RECTANGLE();
-			block->h = 2500;
+			block->h = 3000;
 			block->w = 40;
 			block->x = 0;
-			block->y = -200;
+			block->y = -900;
 			DrawRectWithOpenGL(block,draw_color);
 			delete(block);
 			

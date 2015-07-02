@@ -3,11 +3,31 @@
 #include <string.h>
 #include <fstream>
 
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include <highgui.h>
+#include "cv.h"
+
+using namespace cv;
 
 void ReadCSV::clear()
 {
 	raw_data.clear();
 	attribute_index.clear();
+}
+
+void ReadCSV::test_image()
+{
+	Mat image;
+    image = imread("MRT_Map.jpg", CV_LOAD_IMAGE_COLOR); 
+	if(! image.data )                              // Check for invalid input
+	{
+		cout <<  "Could not open or find the image" << std::endl ;
+		exit(1);
+	}
+
+	circle(image, Point(28,18),6, Scalar(0,255,255),3, 8,0);
+	imwrite( "MRT_Map2.jpg", image );
 }
 
 void ReadCSV::read_file_all()

@@ -100,6 +100,7 @@ namespace OpenGL_on_a_Windows_Form
 	private: System::Windows::Forms::Label^  view_left_label;
 	private: System::Windows::Forms::Label^  view_right_label;
 	private: System::Windows::Forms::ComboBox^  view_select_right;
+	private: System::Windows::Forms::PictureBox^  pictureBox1;
 
 
 
@@ -138,7 +139,9 @@ namespace OpenGL_on_a_Windows_Form
 			this->view_left_label = (gcnew System::Windows::Forms::Label());
 			this->view_right_label = (gcnew System::Windows::Forms::Label());
 			this->view_select_right = (gcnew System::Windows::Forms::ComboBox());
+			this->pictureBox1 = (gcnew System::Windows::Forms::PictureBox());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->trackBar1))->BeginInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->pictureBox1))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// timer1
@@ -159,9 +162,9 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// panel2
 			// 
-			this->panel2->Location = System::Drawing::Point(1578, 585);
+			this->panel2->Location = System::Drawing::Point(1578, 253);
 			this->panel2->Name = L"panel2";
-			this->panel2->Size = System::Drawing::Size(319, 393);
+			this->panel2->Size = System::Drawing::Size(326, 228);
 			this->panel2->TabIndex = 1;
 			this->panel2->Paint += gcnew System::Windows::Forms::PaintEventHandler(this, &Form1::panel2_Paint);
 			this->panel2->MouseEnter += gcnew System::EventHandler(this, &Form1::panel2_MouseEnter);
@@ -179,7 +182,7 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// start
 			// 
-			this->start->Location = System::Drawing::Point(1715, 413);
+			this->start->Location = System::Drawing::Point(1763, 38);
 			this->start->Name = L"start";
 			this->start->Size = System::Drawing::Size(134, 67);
 			this->start->TabIndex = 4;
@@ -189,7 +192,7 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// button2
 			// 
-			this->button2->Location = System::Drawing::Point(1565, 36);
+			this->button2->Location = System::Drawing::Point(1496, 3);
 			this->button2->Name = L"button2";
 			this->button2->Size = System::Drawing::Size(63, 32);
 			this->button2->TabIndex = 5;
@@ -200,7 +203,7 @@ namespace OpenGL_on_a_Windows_Form
 			// trackBar1
 			// 
 			this->trackBar1->LargeChange = 1;
-			this->trackBar1->Location = System::Drawing::Point(1682, 343);
+			this->trackBar1->Location = System::Drawing::Point(1586, 202);
 			this->trackBar1->Maximum = 50;
 			this->trackBar1->Name = L"trackBar1";
 			this->trackBar1->Size = System::Drawing::Size(196, 45);
@@ -210,7 +213,7 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// textBox1
 			// 
-			this->textBox1->Location = System::Drawing::Point(1873, 343);
+			this->textBox1->Location = System::Drawing::Point(1777, 202);
 			this->textBox1->Name = L"textBox1";
 			this->textBox1->Size = System::Drawing::Size(24, 22);
 			this->textBox1->TabIndex = 8;
@@ -219,7 +222,7 @@ namespace OpenGL_on_a_Windows_Form
 			// feature_selection_label
 			// 
 			this->feature_selection_label->AutoSize = true;
-			this->feature_selection_label->Location = System::Drawing::Point(1689, 27);
+			this->feature_selection_label->Location = System::Drawing::Point(1593, 14);
 			this->feature_selection_label->Name = L"feature_selection_label";
 			this->feature_selection_label->Size = System::Drawing::Size(84, 12);
 			this->feature_selection_label->TabIndex = 11;
@@ -230,7 +233,7 @@ namespace OpenGL_on_a_Windows_Form
 			this->residential_in->AutoSize = true;
 			this->residential_in->Checked = true;
 			this->residential_in->CheckState = System::Windows::Forms::CheckState::Checked;
-			this->residential_in->Location = System::Drawing::Point(1691, 61);
+			this->residential_in->Location = System::Drawing::Point(1595, 38);
 			this->residential_in->Name = L"residential_in";
 			this->residential_in->Size = System::Drawing::Size(96, 16);
 			this->residential_in->TabIndex = 9;
@@ -243,7 +246,7 @@ namespace OpenGL_on_a_Windows_Form
 			this->residential_out->AutoSize = true;
 			this->residential_out->Checked = true;
 			this->residential_out->CheckState = System::Windows::Forms::CheckState::Checked;
-			this->residential_out->Location = System::Drawing::Point(1691, 100);
+			this->residential_out->Location = System::Drawing::Point(1595, 60);
 			this->residential_out->Name = L"residential_out";
 			this->residential_out->Size = System::Drawing::Size(103, 16);
 			this->residential_out->TabIndex = 10;
@@ -256,7 +259,7 @@ namespace OpenGL_on_a_Windows_Form
 			this->work_school_in->AutoSize = true;
 			this->work_school_in->Checked = true;
 			this->work_school_in->CheckState = System::Windows::Forms::CheckState::Checked;
-			this->work_school_in->Location = System::Drawing::Point(1691, 138);
+			this->work_school_in->Location = System::Drawing::Point(1595, 82);
 			this->work_school_in->Name = L"work_school_in";
 			this->work_school_in->Size = System::Drawing::Size(107, 16);
 			this->work_school_in->TabIndex = 12;
@@ -269,7 +272,7 @@ namespace OpenGL_on_a_Windows_Form
 			this->work_school_out->AutoSize = true;
 			this->work_school_out->Checked = true;
 			this->work_school_out->CheckState = System::Windows::Forms::CheckState::Checked;
-			this->work_school_out->Location = System::Drawing::Point(1691, 179);
+			this->work_school_out->Location = System::Drawing::Point(1595, 104);
 			this->work_school_out->Name = L"work_school_out";
 			this->work_school_out->Size = System::Drawing::Size(114, 16);
 			this->work_school_out->TabIndex = 13;
@@ -282,7 +285,7 @@ namespace OpenGL_on_a_Windows_Form
 			this->tourism_in->AutoSize = true;
 			this->tourism_in->Checked = true;
 			this->tourism_in->CheckState = System::Windows::Forms::CheckState::Checked;
-			this->tourism_in->Location = System::Drawing::Point(1691, 218);
+			this->tourism_in->Location = System::Drawing::Point(1595, 126);
 			this->tourism_in->Name = L"tourism_in";
 			this->tourism_in->Size = System::Drawing::Size(84, 16);
 			this->tourism_in->TabIndex = 18;
@@ -295,7 +298,7 @@ namespace OpenGL_on_a_Windows_Form
 			this->tourism_out->AutoSize = true;
 			this->tourism_out->Checked = true;
 			this->tourism_out->CheckState = System::Windows::Forms::CheckState::Checked;
-			this->tourism_out->Location = System::Drawing::Point(1691, 256);
+			this->tourism_out->Location = System::Drawing::Point(1595, 148);
 			this->tourism_out->Name = L"tourism_out";
 			this->tourism_out->Size = System::Drawing::Size(91, 16);
 			this->tourism_out->TabIndex = 19;
@@ -306,7 +309,7 @@ namespace OpenGL_on_a_Windows_Form
 			// cluster_label
 			// 
 			this->cluster_label->AutoSize = true;
-			this->cluster_label->Location = System::Drawing::Point(1689, 313);
+			this->cluster_label->Location = System::Drawing::Point(1593, 177);
 			this->cluster_label->Name = L"cluster_label";
 			this->cluster_label->Size = System::Drawing::Size(129, 12);
 			this->cluster_label->TabIndex = 14;
@@ -314,7 +317,7 @@ namespace OpenGL_on_a_Windows_Form
 			// 
 			// load_csv
 			// 
-			this->load_csv->Location = System::Drawing::Point(1732, 505);
+			this->load_csv->Location = System::Drawing::Point(1780, 130);
 			this->load_csv->Name = L"load_csv";
 			this->load_csv->Size = System::Drawing::Size(102, 32);
 			this->load_csv->TabIndex = 16;
@@ -393,11 +396,21 @@ namespace OpenGL_on_a_Windows_Form
 			this->view_select_right->Text = L"Station";
 			this->view_select_right->SelectedIndexChanged += gcnew System::EventHandler(this, &Form1::view_select_right_SelectedIndexChanged);
 			// 
+			// pictureBox1
+			// 
+			this->pictureBox1->Location = System::Drawing::Point(1578, 494);
+			this->pictureBox1->Name = L"pictureBox1";
+			this->pictureBox1->Size = System::Drawing::Size(326, 548);
+			this->pictureBox1->TabIndex = 0;
+			this->pictureBox1->TabStop = false;
+			this->pictureBox1->Click += gcnew System::EventHandler(this, &Form1::pictureBox1_Click);
+			// 
 			// Form1
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(1916, 1054);
+			this->Controls->Add(this->pictureBox1);
 			this->Controls->Add(this->view_select_right);
 			this->Controls->Add(this->view_right_label);
 			this->Controls->Add(this->view_left_label);
@@ -428,6 +441,7 @@ namespace OpenGL_on_a_Windows_Form
 			this->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &Form1::Form1_MouseMove_1);
 			this->MouseUp += gcnew System::Windows::Forms::MouseEventHandler(this, &Form1::Form1_MouseUp);
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->trackBar1))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->pictureBox1))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
@@ -461,6 +475,8 @@ namespace OpenGL_on_a_Windows_Form
 				 histogram->clear();
 				 rawData->clear();
 				 detail->clear();
+
+				 read_csv.test_image();///////////////////////////////////
 
 				preprocessing_data.Initial_selection_flag(this->residential_in->Checked,
 														  this->residential_out->Checked,
@@ -744,6 +760,7 @@ namespace OpenGL_on_a_Windows_Form
 	private: System::Void panel2_Paint(System::Object^  sender, System::Windows::Forms::PaintEventArgs^  e) {
 			 }
 	private: System::Void Form1_Load(System::Object^  sender, System::EventArgs^  e) {
+				 this->pictureBox1->Image = Image::FromFile("MRT_map.jpg");
 			 }
 
 	private: System::Void comboBox1_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e) {
@@ -764,6 +781,11 @@ private: System::Void view_select_right_SelectedIndexChanged(System::Object^  se
 				 Object^ selectedItem = view_select_right->SelectedItem;
 
 				 preprocessing_data.view_select_right_index = selectedIndex;
+		 }
+private: System::Void pictureBox1_Click(System::Object^  sender, System::EventArgs^  e) {
+				this->pictureBox1->Image = Image::FromFile("MRT_map2.jpg");
+				
+
 		 }
 };
 }
