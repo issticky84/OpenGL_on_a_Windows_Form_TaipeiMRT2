@@ -322,12 +322,15 @@ void Preprocessing_Data::start3(vector<month> month_vec_read,int day_amount_read
 void Preprocessing_Data::start_on_2D(int hour_amount,int day_amount)
 {
 	int dim_index[] = {31,98,30,23,90,10,12,129,55,54,53,52,51,50,42,132,91,89,133,88,29,28,26,25,21,13,14,15,17,18,70,69,66,64,63,62,60,59,43,38,37,
-					   35,34,32,174,175,176,177,178,128,45,46,47,48,96,95,85,84,83,81,79,78,77,22,7,19};
+					   35,34,32,174,175,176,177,178,128,45,46,47,48,96,95,85,84,83,81,79,78,77,22,7,19,
+					   24,8,11,16,41,40,39,36,130,97,82,80,42,131,93,92,86,27,65,61,58,57,56,33,85,71,68};
 	dim = sizeof(dim_index)/sizeof(dim_index[0]);
 
 	
 	Mat dim_data_enter_avg = Mat::zeros(dim,24,CV_32F);
 	Mat dim_data_out_avg = Mat::zeros(dim,24,CV_32F);
+	Mat enter_total = Mat::zeros(dim,1,CV_32F);
+	Mat out_total = Mat::zeros(dim,1,CV_32F);
 	for(int s=0;s<dim;s++)
 	{
 		for(int i=0;i<month_vec.size();i++)
@@ -339,12 +342,24 @@ void Preprocessing_Data::start_on_2D(int hour_amount,int day_amount)
 					int dim_num = dim_index[s];
 					dim_data_enter_avg.at<float>(s,u) += month_vec[i].day_vec[j].hour_vec[u].enter[ dim_num ];
 					dim_data_out_avg.at<float>(s,u) += month_vec[i].day_vec[j].hour_vec[u].out[ dim_num ];
+
+					enter_total.at<float>(s,0) += month_vec[i].day_vec[j].hour_vec[u].enter[ dim_num ];
+					out_total.at<float>(s,0) += month_vec[i].day_vec[j].hour_vec[u].out[ dim_num ];
 				}
 			
 			}
 		}
 	}
 	
+	for(int s=0;s<dim;s++)
+	{
+		for(int u=0;u<24;u++)
+		{
+			dim_data_enter_avg.at<float>(s,u) /= enter_total.at<float>(s,0);
+			dim_data_out_avg.at<float>(s,u) /= out_total.at<float>(s,0);
+		}
+	}
+
 	dim_data_enter_avg = dim_data_enter_avg.mul(1.0/day_amount);
 	dim_data_out_avg = dim_data_out_avg.mul(1.0/day_amount);
 
@@ -364,12 +379,13 @@ void Preprocessing_Data::start_on_2D(int hour_amount,int day_amount)
 
 	output_mat_as_csv_file_float("model_on_2D.csv",model);
 
-	for(int i=0;i<model.cols;i++)
-	{
-		normalize(model.col(i),model.col(i),0,1,NORM_MINMAX);
-	}
+	//for(int i=0;i<model.cols;i++)
+	//{
+	//	normalize(model.col(i),model.col(i),0,1,NORM_MINMAX);
+	//}
+	normalize(model,model,0,1,NORM_MINMAX);
 
-    int k = 10; 
+    int k = 5; 
     Mat cluster_tag; //Tag:0~k-1
     int attempts = 2;//應該是執行次數
 	Mat cluster_centers;
@@ -434,6 +450,10 @@ void Preprocessing_Data::start_on_2D(int hour_amount,int day_amount)
 			{
 				avg_dist.at<double>(i,j) += abs( dim_data_out_avg.at<float>(i,s) - dim_data_out_avg.at<float>(j,s) );
 			}
+			//for(int s=0;s<histogram_on_2D.cols;s++)
+			//{
+			//	avg_dist.at<double>(i,j) += abs( histogram_on_2D.at<int>(i,s) - histogram_on_2D.at<int>(j,s) );
+			//}
 		}
 	}
 	output_mat_as_csv_file_double("avg_dist.csv",avg_dist);

@@ -164,7 +164,7 @@ namespace OpenGLForm{
 			block->h = 3000;
 			block->w = 40;
 			block->x = 0;
-			block->y = -900;
+			block->y = -1100;
 			DrawRectWithOpenGL(block,draw_color);
 			delete(block);
 			

@@ -189,6 +189,46 @@ namespace OpenGLForm{
 			}	
 	}
 
+	System::Void RawDataVisualization::stationView()
+	{
+			glTranslatef(0.0+move_x[1],0.0+move_y[1],0.0+move_z[1]);
+			glScalef(1.0+scale_factor[1]+scale_x[1], 1.0+scale_factor[1]+scale_y[1], 1.0+scale_factor[1]+scale_z[1]);
+			glGetDoublev(GL_MODELVIEW_MATRIX, ModelViewMatrix2);
+			for(int day=0; day<preprocessing_data.dim ;day++)
+			{
+				int dim_index[] = {31,98,30,23,90,10,12,129,55,54,53,52,51,50,42,132,91,89,133,88,29,28,26,25,21,13,14,15,17,18,70,69,66,64,63,62,60,59,43,38,37,
+								   35,34,32,174,175,176,177,178,128,45,46,47,48,96,95,85,84,83,81,79,78,77,22,7,19,
+								   24,8,11,16,41,40,39,36,130,97,82,80,42,131,93,92,86,27,65,61,58,57,56,33,85,71,68};					
+				int home[] = {29,28,26,25,21,13,14,15,17,18,70,69,66,64,63,62,60,59,43,38,37,35,34,32,174,175,176,177,178,128,45,46,47,48,96,95,85,84,83,81,79,78,77};//43
+				int home_num = sizeof(home)/sizeof(home[0]);
+				int work_school[] = {31,98,30,23,90,10,12,129,55,54,53,52,51,50,42,132,91,89,133,88};//20
+				int work_school_num = sizeof(work_school)/sizeof(work_school[0]);
+				int dim_label[199];
+				for(int i=0;i<199;i++) dim_label[ i ] = 0;
+				for(int i=0;i<preprocessing_data.dim;i++) dim_label[ dim_index[i] ] = 1;
+				for(int i=0;i<home_num;i++)  dim_label[ home[i] ] = 2;
+				for(int i=0;i<work_school_num;i++)  dim_label[ work_school[i] ] = 3;
+
+				int dim_num = dim_index[day];
+				glPointSize( 10.0 );
+
+				glPushMatrix();
+				glBegin( GL_POINTS );
+				if(dim_label[dim_num] == 2)
+					glColor3f( 1.0f, 0.0, 0.0f );
+				else if(dim_label[dim_num] == 3)
+					glColor3f( 0.0f, 1.0, 0.0f );
+				else
+					glColor3f( 1.0f, 1.0, 1.0f );
+				glVertex2f( preprocessing_data.position_on_2D.at<double>(day,0), preprocessing_data.position_on_2D.at<double>(day,1) );
+				glEnd();
+				glPopMatrix();
+					
+				//DrawCircle(preprocessing_data.position_on_2D.at<double>(day,0),preprocessing_data.position_on_2D.at<double>(day,1), 2.0, 1, 0, 0);
+				//DrawCircle(preprocessing_data.position_on_2D.at<double>(day,0),preprocessing_data.position_on_2D.at<double>(day,1), 2.0, (rand() % 11)/10.0, (rand() % 11)/10.0, (rand() % 11)/10.0);
+			}	
+	}
+
 	System::Void RawDataVisualization::Render(int rawdata_width,int rawdata_height){
 			wglmakecur();
 				
@@ -206,26 +246,13 @@ namespace OpenGLForm{
 			glLoadIdentity();
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Clear the screen and depth buffer
 
-			if(preprocessing_data.view_select_right_index==2) themeriverView();
+			if(preprocessing_data.view_select_right_index==2)
+			{
+				themeriverView();
+			}
 			else if(preprocessing_data.view_select_right_index==1)
 			{
-				glTranslatef(0.0+move_x[1],0.0+move_y[1],0.0+move_z[1]);
-				glScalef(0.8+scale_factor[1]+scale_x[1], 0.8+scale_factor[1]+scale_y[1], 0.8+scale_factor[1]+scale_z[1]);
-				glGetDoublev(GL_MODELVIEW_MATRIX, ModelViewMatrix2);
-				for(int day=0; day<preprocessing_data.dim ;day++)
-				{
-					
-					glPushMatrix();
-					glBegin( GL_POINTS );
-					glPointSize( 14.0 );
-					glColor3f( 0.95f, 0.207, 0.031f );
-					glVertex2f( preprocessing_data.position_on_2D.at<double>(day,0), preprocessing_data.position_on_2D.at<double>(day,1) );
-					glEnd();
-					glPopMatrix();
-					
-					//DrawCircle(preprocessing_data.position_on_2D.at<double>(day,0),preprocessing_data.position_on_2D.at<double>(day,1), 2.0, 1, 0, 0);
-					//DrawCircle(preprocessing_data.position_on_2D.at<double>(day,0),preprocessing_data.position_on_2D.at<double>(day,1), 2.0, (rand() % 11)/10.0, (rand() % 11)/10.0, (rand() % 11)/10.0);
-				}
+				stationView();
 			}
 
 			SwapOpenGLBuffers();
@@ -241,6 +268,24 @@ namespace OpenGLForm{
 		pos_3D.x += move_x[1];
 		pos_3D.y += move_y[1];	
 		//System::Windows::Forms::MessageBox::Show( pos_3D.x.ToString() + " " + pos_3D.y.ToString());	
+		for(int day=0; day<preprocessing_data.dim ;day++)
+		{
+			int x = preprocessing_data.position_on_2D.at<double>(day,0);
+			int y = preprocessing_data.position_on_2D.at<double>(day,1);
+			x *= (scale_factor[1] + scale_x[1]);
+			y *= (scale_factor[1] + scale_y[1]);
+			x += move_x[1];
+			y += move_y[1];
+			//if(day==15)
+			//{
+			//	System::Windows::Forms::MessageBox::Show( x.ToString() + " " + y.ToString());	
+			//}
+			if( abs(pos_3D.x-x) <= 1 && abs(pos_3D.y-y) <= 1 )
+			{
+				System::Windows::Forms::MessageBox::Show( day.ToString());	
+			}
+		}
+		/*
 		for(int i=0;i<raw_data_position_table.size();i++)
 		{
 			//if(histogram_index[i] > preprocessing_data.month_vec.size() || histogram_index[i] < 0) break; 
@@ -261,7 +306,7 @@ namespace OpenGLForm{
 					raw_data_index_2D.push_back(temp);
 				}
 			}
-		}
+		}*/
 	}
 
 	System::Void RawDataVisualization::FindHistogram(int x,int y)

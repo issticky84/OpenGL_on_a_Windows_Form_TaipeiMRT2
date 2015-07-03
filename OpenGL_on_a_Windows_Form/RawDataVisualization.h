@@ -22,5 +22,6 @@ namespace OpenGLForm{
 			System::Void time_string();
 
 			System::Void themeriverView();
+			System::Void stationView();
 	};
 }
